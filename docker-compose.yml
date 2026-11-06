@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: inab-sig-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ceo
+      POSTGRES_USER: ceo
+      POSTGRES_PASSWORD: ceo_secret_password
+    volumes:
+      - inab_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ceo -d ceo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inab-sig-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ceo
+      DB_USER: ceo
+      DB_PASSWORD: ceo_secret_password
+      DB_ADMIN_PASSWORD: ceo_secret_password
+      PORT: 8080
+      SESSION_KEY: inabsigvalidacio
+    ports:
+      - "8080:8080"
+    volumes:
+      - inab_app_logs:/app/logs
+
+volumes:
+  inab_postgres_data:
+  inab_app_logs:

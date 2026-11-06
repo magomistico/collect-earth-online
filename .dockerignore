@@ -1,0 +1,13 @@
+.git
+.github
+node_modules
+.cpcache
+.clj-kondo
+.idea
+target
+logs
+*.log
+.env
+classes
+__pycache__
+*.pyc

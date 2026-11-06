@@ -4,7 +4,7 @@ import { TileWMS, XYZ, OSM, BingMaps, Vector as VectorSource } from 'ol/source';
 import { Style, Stroke, Fill } from 'ol/style';
 import { toLonLat, fromLonLat } from 'ol/proj';
 import { platformModifierKeyOnly } from 'ol/events/condition';
-import { getCenter, getExtent, createEmpty, extend } from 'ol/extent';
+import { getCenter, createEmpty, extend } from 'ol/extent';
 import { getArea } from "ol/sphere";
 import Collection from 'ol/Collection';
 import DragBox from 'ol/interaction/DragBox';

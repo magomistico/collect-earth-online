@@ -18,7 +18,6 @@ node_modules/
 target/
 config.edn
 package-lock.json
-pnpm-lock.yaml
 announcement.txt
 __pycache__
 classes
