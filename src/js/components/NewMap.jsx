@@ -47,8 +47,8 @@ const samplePointStyle = (feature) => {
 export const NewMap = ({
   pan = true,
   allowDrawing = false,
-  initCenter = [-98.5795, 39.8283],
-  initZoom = 4,
+  initCenter = [-90.25, 15.78],
+  initZoom = 7,
   preview = false,
   aoiToShow = [],
   plotsToShow = [],

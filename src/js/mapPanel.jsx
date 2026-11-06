@@ -89,12 +89,12 @@ export default function MapPanel ({imagery = [], projects = [], mapConfigAtom}) 
     const homePageLayer =
           imagery.find((imagery) => imagery.title === "Mapbox Satellite w/ Labels") ||
           imagery[0];
-    const initMapConfig = mercator.createMap("home-map-pane", [70, 15], 2.1, [homePageLayer]);
+    const initMapConfig = mercator.createMap("home-map-pane", [-90.25, 15.78], 7.2, [homePageLayer]);
     mercator.setVisibleLayer(initMapConfig, homePageLayer.id);
     const homeView = new View({
       projection: "EPSG:3857",
-      center: fromLonLat([70, 15]),
-      zoom: 2.1,
+      center: fromLonLat([-90.25, 15.78]),
+      zoom: 7.2,
     });
     initMapConfig.map.setView(homeView);
     setMapConfig({ ...initMapConfig, view: homeView });
