@@ -320,15 +320,23 @@ export function NavTopBar ({version, userName, userId, children}) {
         ref={navRef}
         style={{ backgroundColor: "white", borderBottom: "1px solid black" }}
       >
-        <a className="navbar-brand pt-1 pb-1" href="/home">
-          <div className="d-flex flex-column align-items-center justify-content-center">
+        <a className="navbar-brand pt-1 pb-1" href="/home" style={{ textDecoration: "none" }}>
+          <div className="d-flex align-items-center">
             <img
-              alt="Home"
+              alt="INAB · SIG"
               id="ceo-site-logo"
-              src="/img/ceo-logo.png"
+              src="/img/inab-logo.svg"
+              style={{ maxHeight: "50px", width: "auto" }}
             />
-            <div className="badge badge-pill badge-light" style={{ fontSize: "0.6rem" }}>
-              Version: {version}
+            <div className="d-flex flex-column ml-2 text-left" style={{ lineHeight: 1.1 }}>
+              <div className="d-flex align-items-baseline">
+                <span style={{ fontWeight: 800, fontSize: "1.2rem", color: "#165337", letterSpacing: "0.04em" }}>INAB</span>
+                <span style={{ margin: "0 6px", color: "#7a9b80", fontWeight: 300 }}>|</span>
+                <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "#2d7a52", letterSpacing: "0.06em" }}>SIG</span>
+              </div>
+              <span style={{ fontSize: "0.68rem", color: "#546e5a", letterSpacing: "0.03em" }}>
+                Validación Forestal
+              </span>
             </div>
           </div>
         </a>

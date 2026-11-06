@@ -45,7 +45,7 @@ export default class GeoDashNavigationBar extends React.Component {
           style={{ backgroundColor: "white" }}
         >
           <a className="navbar-brand pt-1 pb-1" href="home">
-            <img alt="Home" id="ceo-site-logo" src="/img/ceo-logo.png" />
+            <img alt="INAB · SIG" id="ceo-site-logo" src="/img/inab-logo.svg" />
           </a>
           <button
             className="navbar-toggler"

@@ -69,7 +69,7 @@ function ProjectCard ({project, mapConfig}) {
       <div className="project-info">
         <span className="project-title">{project.name}</span>
         <div className="project-attribution"
-          onClick={() => {window.location.href = `/review-institution?institutionId=${project.institutionId}`;}}>
+          onClick={() => {window.location.href = `/institution-dashboard?institutionId=${project.institutionId}`;}}>
           <SvgIcon icon="institution" size="1.2rem"/>
           <span>{project.institutionName}</span>
         </div>
@@ -206,17 +206,44 @@ export default function Highlights ({userId, userRole}) {
       .finally(() => setAppState(prev => ({... prev, modalMessage: null })));
   }, []);
 
+  function InabHero () {
+    return (
+      <div style={{
+        width: "100%",
+        background: "radial-gradient(ellipse at center, rgba(34, 197, 94, 0.08) 0%, rgba(13, 35, 27, 0.02) 70%, transparent 100%)",
+        borderRadius: "16px",
+        border: "1px solid rgba(45, 106, 79, 0.15)",
+        padding: "10px",
+        marginBottom: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
+      }}>
+        <iframe
+          src="/inab-interactivo.html"
+          style={{
+            width: "100%",
+            height: "280px",
+            border: "none",
+            borderRadius: "12px",
+            background: "transparent"
+          }}
+          title="INAB SIG Logo Interactivo"
+        />
+      </div>
+    );
+  }
+
   const highlights = {
-    blogs: {
-      title: "Featured Blogs",
-      subtitle: "Read the latest stories, updates, and insights from the Collect Earth Online community.",
-      children: <Blogs blogs={appState.blogs}/>,
-      link: "http://collect.earth/blog"},
+    welcome: {
+      title: "Portal de Validación Forestal - INAB SIG",
+      subtitle: "Herramienta institucional del Instituto Nacional de Bosques para la interpretación y validación espacial.",
+      children: <InabHero />
+    },
     projects: {
-      title: "Featured Projects",
-      subtitle: "Browse active projects from institutions around the world.",
+      title: "Proyectos de Validación Asignados",
+      subtitle: "Explora los proyectos activos de muestreo y validación forestal.",
       children: <Projects projects={appState.projects} imagery={appState.imagery}/>,
-      //  link: "/home?tab=collect"
     }
   };
   
@@ -224,8 +251,8 @@ export default function Highlights ({userId, userRole}) {
     <div id="highlights-tab" className="home-tab">
       <div className="header">
         <div className="header-row">
-          <span className="header-title">HIGHLIGHTS</span>
-          <span className="header-subtitle">Explore the latest blogs and selected projects from the Collect Earth Online community.</span>
+          <span className="header-title">INAB · SIG</span>
+          <span className="header-subtitle">Sistema Institucional de Monitoreo y Validación Forestal</span>
         </div>
       </div>
       <div className="highlights-body">

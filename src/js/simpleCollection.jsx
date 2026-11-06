@@ -1178,7 +1178,7 @@ function NavigationBar({ children }) {
         style={{ backgroundColor: "white", borderBottom: "1px solid black" }}
       >
         <a className="navbar-brand pt-1 pb-1" href="/home">
-          <img alt="Home" id="ceo-site-logo" src="/img/ceo-logo.png" />
+          <img alt="INAB · SIG" id="ceo-site-logo" src="/img/inab-logo.svg" />
         </a>
         {/* <a className="nav-link" href="/collection">Desktop</a> */}
       </nav>
