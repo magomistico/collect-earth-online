@@ -38,7 +38,7 @@ function ProjectCard ({project, mapConfig}) {
         <span className="project-title">{project.name}</span>
         <div
           className="project-attribution"
-          onClick={() => {window.location.href = `/review-institution?institutionId=${project.institutionId}`;}}>
+          onClick={() => {window.location.href = `/institution-dashboard?institutionId=${project.institutionId}`;}}>
           <SvgIcon icon="institution" size="1.2rem"/>
           <span>{project.institutionName}</span>
         </div>

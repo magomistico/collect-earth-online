@@ -9,7 +9,7 @@ import { stateAtom } from "./utils/constants";
 
 function Home ({ userId, userName, version }) {
   const [appState, setAppState] = useAtom(stateAtom);
-  const [tab, setTab] = useState('highlights');
+  const [tab, setTab] = useState(userId ? 'collect' : 'highlights');
 
   function getUserStats (userId) {
     /*
