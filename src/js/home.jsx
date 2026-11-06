@@ -20,8 +20,6 @@ function Home ({ userId, userName, version }) {
       .then((response) => (response.ok ? response.json() : Promise.reject(response)))
       .then((stats) => {
         if (stats) {
-          (!(stats.acceptTOS || "").length > 0) &&
-            setAppState(s => ({ ... s, modal: {"TOS": true}}));
           return Promise.resolve();
         } else {
           return Promise.reject("Unable to get User Data");

@@ -346,15 +346,11 @@ export function NavTopBar ({version, userName, userId, children}) {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav mr-auto">
             {[
-              { page: "CEO", link: "/home" },
-              { page: "Home", link: "https://collect.earth/" },
-              { page: "About", link: "https://collect.earth/about/" },
-              { page: "Support", link: "https://collect.earth/ceo-guides" },
-              { page: "Blog", link: "https://collect.earth/blog" },
+              { page: "Inicio", link: "/home" },
             ].map(({ page, link }) => (
               <li
                 key={page}
-                className={"nav-item" + (page === "CEO" && uri === "/home" && " active")}
+                className={"nav-item" + (uri === "/home" && " active")}
               >
                 <a className="nav-link" href={link}>
                   {page}
@@ -665,7 +661,7 @@ export function AcceptTermsModal ({institutionId, projectId, toggleAcceptTermsMo
             <button aria-label="Close"
                     className="close"
                     onClick={() =>
-                      window.location.assign(`/review-institution?institutionId=${institutionId}`)
+                      window.location.assign(`/home`)
                     }
                     type="button">
               &times;
@@ -699,7 +695,7 @@ export function AcceptTermsModal ({institutionId, projectId, toggleAcceptTermsMo
               className="btn btn-danger btn-sm"
               id="quit-button"
               onClick={() =>
-                window.location.assign(`/review-institution?institutionId=${institutionId}`)
+                window.location.assign(`/home`)
               }
               type="button"
             >
