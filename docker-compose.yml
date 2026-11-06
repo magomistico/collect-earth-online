@@ -40,6 +40,24 @@ services:
     volumes:
       - inab_app_logs:/app/logs
 
+  proxy:
+    image: caddy:2-alpine
+    container_name: inab-sig-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-inab-sig.159.54.156.211.sslip.io}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - inab_caddy_data:/data
+      - inab_caddy_config:/config
+    depends_on:
+      - app
+
 volumes:
   inab_postgres_data:
   inab_app_logs:
+  inab_caddy_data:
+  inab_caddy_config:
