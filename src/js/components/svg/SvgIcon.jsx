@@ -121,6 +121,7 @@ export const iconMap = {
 
 function SvgIcon({ icon, color, cursor, size, verticalAlign, transform }) {
   const Icon = iconMap[icon];
+  if (!Icon) return null;
   return (
     <Icon
       color={color}

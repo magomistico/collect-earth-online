@@ -21,6 +21,7 @@ export default function Institutions ({userId, userRole, projects}) {
     userRole,
     stateAtom
   }) {
+    const [search, setSearch] = useState("");
     const projectsByInstitution = useMemo(() => {
       const map = {};
       for (const p of projects) {
