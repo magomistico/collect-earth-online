@@ -5,7 +5,7 @@
  :triangulum.server/nrepl-port        5555
  :triangulum.server/nrepl-bind        "127.0.0.1"
  :triangulum.server/cider-nrepl       true
- :triangulum.server/mode              "dev"
+ :triangulum.server/mode              "prod"
  :triangulum.server/log-dir           "logs"
 
  :triangulum.server/handler           triangulum.handler/authenticated-routing-handler
@@ -32,9 +32,12 @@
  :triangulum.response/response-type   :json ; :edn or :transit
 
  ;; views (app)
- :triangulum.views/title              {:en "INAB · SIG - Validación Forestal"}
- :triangulum.views/description        {:en "Plataforma de Validación Espacial e Interpretación de Cobertura Forestal - Instituto Nacional de Bosques de Guatemala"}
- :triangulum.views/keywords           {:en "INAB SIG Guatemala validacion forestal cobertura bosque satelite"}
+ :triangulum.views/title              {:en "INAB · SIG - Validación Forestal"
+                                       :es "INAB · SIG - Validación Forestal"}
+ :triangulum.views/description        {:en "Plataforma de Validación Espacial e Interpretación de Cobertura Forestal - Instituto Nacional de Bosques de Guatemala"
+                                       :es "Plataforma de Validación Espacial e Interpretación de Cobertura Forestal - Instituto Nacional de Bosques de Guatemala"}
+ :triangulum.views/keywords           {:en "INAB SIG Guatemala validacion forestal cobertura bosque satelite"
+                                       :es "INAB SIG Guatemala validacion forestal cobertura bosque satelite"}
  :triangulum.views/extra-head-tags    [[:meta {:name "viewport" :content "width=device-width, user-scalable=no"}]
                                        [:link {:rel "manifest" :href "/favicon/site.webmanifest"}]
                                        [:link {:rel "shortcut icon" :href "/favicon/favicon.ico"}]]

@@ -15,21 +15,22 @@ echo "=========================================================="
 echo "    INAB · SIG - Plataforma de Validación Forestal        "
 echo "=========================================================="
 
-# 1. Generar config.edn si no existe
+# 1. Generar o actualizar config.edn
 if [ ! -f "config.edn" ]; then
     echo "[INFO] Generando config.edn a partir de config.example.edn..."
     cp config.example.edn config.edn
-    
-    # Reemplazar configuraciones con las variables de entorno
-    sed -i "s/:triangulum.database\/host .*/:triangulum.database\/host            \"$DB_HOST\"/" config.edn
-    sed -i "s/:triangulum.database\/port .*/:triangulum.database\/port            $DB_PORT/" config.edn
-    sed -i "s/:triangulum.database\/dbname .*/:triangulum.database\/dbname          \"$DB_NAME\"/" config.edn
-    sed -i "s/:triangulum.database\/user .*/:triangulum.database\/user            \"$DB_USER\"/" config.edn
-    sed -i "s/:triangulum.database\/password .*/:triangulum.database\/password        \"$DB_PASSWORD\"/" config.edn
-    sed -i "s/:triangulum.build-db\/admin-pass .*/:triangulum.build-db\/admin-pass      \"$DB_ADMIN_PASSWORD\"/" config.edn
-    sed -i "s/:triangulum.handler\/session-key .*/:triangulum.handler\/session-key       \"$SESSION_KEY\"/" config.edn
-    sed -i "s/:triangulum.server\/http-port .*/:triangulum.server\/http-port         $HTTP_PORT/" config.edn
 fi
+
+# Reemplazar configuraciones con las variables de entorno y modo producción
+sed -i "s/:triangulum.database\/host .*/:triangulum.database\/host            \"$DB_HOST\"/" config.edn
+sed -i "s/:triangulum.database\/port .*/:triangulum.database\/port            $DB_PORT/" config.edn
+sed -i "s/:triangulum.database\/dbname .*/:triangulum.database\/dbname          \"$DB_NAME\"/" config.edn
+sed -i "s/:triangulum.database\/user .*/:triangulum.database\/user            \"$DB_USER\"/" config.edn
+sed -i "s/:triangulum.database\/password .*/:triangulum.database\/password        \"$DB_PASSWORD\"/" config.edn
+sed -i "s/:triangulum.build-db\/admin-pass .*/:triangulum.build-db\/admin-pass      \"$DB_ADMIN_PASSWORD\"/" config.edn
+sed -i "s/:triangulum.handler\/session-key .*/:triangulum.handler\/session-key       \"$SESSION_KEY\"/" config.edn
+sed -i "s/:triangulum.server\/http-port .*/:triangulum.server\/http-port         $HTTP_PORT/" config.edn
+sed -i 's/:triangulum.server\/mode .*/:triangulum.server\/mode              "prod"/' config.edn
 
 # 2. Esperar disponibilidad de PostgreSQL
 echo "[INFO] Esperando a PostgreSQL en $DB_HOST:$DB_PORT..."
@@ -51,5 +52,5 @@ else
 fi
 
 # 4. Iniciar servidor Ring/Triangulum
-echo "[INFO] Iniciando servidor web INAB-SIG en el puerto $HTTP_PORT..."
+echo "[INFO] Iniciando servidor web INAB-SIG en el puerto $HTTP_PORT (modo prod)..."
 exec clojure -M:production:server start -p "$HTTP_PORT"
