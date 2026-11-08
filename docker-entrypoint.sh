@@ -161,6 +161,9 @@ fi
 
 echo "[INFO] Asegurando credenciales de admin@inab.gob.gt y membresías en INAB - SIG..."
 PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOSQL' || true
+-- Sanitizar cualquier contraseña vacía o nula que pudiera romper pgcrypto
+UPDATE users SET password = crypt('disabled_guest_password', gen_salt('bf')) WHERE email = 'guest' OR password = '' OR password IS NULL;
+
 -- Asegurar secuencias correctas
 SELECT setval(pg_get_serial_sequence('users', 'user_uid'), GREATEST(COALESCE((SELECT MAX(user_uid) FROM users), 1), 1));
 
@@ -171,6 +174,13 @@ ON CONFLICT (email) DO UPDATE
 SET password = crypt('admin123', gen_salt('bf')),
     administrator = TRUE,
     verified = TRUE;
+
+-- Asegurar hash bcrypt para admin@inab.gob.gt en caso de que exista con mayúsculas/espacios
+UPDATE users
+SET password = crypt('admin123', gen_salt('bf')),
+    administrator = TRUE,
+    verified = TRUE
+WHERE LOWER(TRIM(email)) = 'admin@inab.gob.gt';
 
 -- Marcar todos los usuarios registrados como verificados
 UPDATE users SET verified = TRUE WHERE verified = FALSE;

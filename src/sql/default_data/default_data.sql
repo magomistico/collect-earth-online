@@ -8,6 +8,7 @@ VALUES
     (3, 'pending');
 
 INSERT INTO users
-    (user_uid, email, password, administrator, reset_key)
+    (user_uid, email, password, administrator, reset_key, verified)
 VALUES
-    (-1, 'guest', '', false, null);
+    (-1, 'guest', crypt('disabled_guest_password', gen_salt('bf')), false, null, true)
+ON CONFLICT (email) DO NOTHING;

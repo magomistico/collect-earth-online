@@ -131,7 +131,8 @@ CREATE OR REPLACE FUNCTION get_all_users_by_institution_id(_institution_id integ
 
 $$ LANGUAGE SQL;
 
--- Returns all of the user fields associated with the provided email
+-- Returns all of the user fields associated with the provided email (safe PL/pgSQL against invalid salt)
+DROP FUNCTION IF EXISTS check_login(text, text) CASCADE;
 CREATE OR REPLACE FUNCTION check_login(_email text, _password text)
  RETURNS table (
     user_id          integer,
@@ -139,13 +140,54 @@ CREATE OR REPLACE FUNCTION check_login(_email text, _password text)
     verified         boolean,
     accept_tos       text
  ) AS $$
-
-    SELECT user_uid, administrator, TRUE AS verified, accept_tos
+DECLARE
+    _u record;
+    _matched boolean := FALSE;
+BEGIN
+    -- 1. Buscar usuario por correo exacto (en minúsculas y sin espacios)
+    SELECT user_uid, users.password, users.administrator, users.verified, users.accept_tos
+    INTO _u
     FROM users
-    WHERE LOWER(TRIM(email)) = LOWER(TRIM(_email))
-        AND password = crypt(_password, password)
+    WHERE LOWER(TRIM(users.email)) = LOWER(TRIM(_email))
+    LIMIT 1;
 
-$$ LANGUAGE SQL;
+    IF _u.user_uid IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- 2. Validar contraseña de forma segura (sin fallar por formato de salt inválido)
+    IF _u.password IS NOT NULL AND LENGTH(_u.password) > 0 THEN
+        BEGIN
+            IF _u.password = crypt(_password, _u.password) THEN
+                _matched := TRUE;
+            ELSIF _u.password = _password THEN
+                _matched := TRUE;
+                UPDATE users
+                SET password = crypt(_password, gen_salt('bf'))
+                WHERE user_uid = _u.user_uid;
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+            -- Si la contraseña almacenada no era un hash bcrypt válido, verificar texto plano
+            IF _u.password = _password THEN
+                _matched := TRUE;
+                UPDATE users
+                SET password = crypt(_password, gen_salt('bf'))
+                WHERE user_uid = _u.user_uid;
+            END IF;
+        END;
+    END IF;
+
+    IF _matched THEN
+        user_id := _u.user_uid;
+        administrator := _u.administrator;
+        verified := TRUE;
+        accept_tos := _u.accept_tos;
+        RETURN NEXT;
+    END IF;
+
+    RETURN;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Checks if email is already in use.  Ignores the current user.
 CREATE OR REPLACE FUNCTION email_taken(_email text, _user_id_to_ignore integer)
@@ -254,7 +296,7 @@ CREATE OR REPLACE FUNCTION update_password(_email text, _password text)
     SET password = crypt(_password, gen_salt('bf')),
         reset_key = NULL,
         verified = TRUE
-    WHERE email = _email
+    WHERE LOWER(TRIM(email)) = LOWER(TRIM(_email))
 
 $$ LANGUAGE SQL;
 

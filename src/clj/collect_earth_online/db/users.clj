@@ -23,7 +23,10 @@
 (defn login [{:keys [params]}]
   (let [{:keys [email password]} params
         clean-email (str/lower-case (str/trim (or email "")))
-        user        (first (call-sql "check_login" {:log? false} clean-email password))
+        clean-pass  (str password)
+        user        (try
+                      (first (call-sql "check_login" {:log? false} clean-email clean-pass))
+                      (catch Exception _ nil))
         user-info   {:userId        (:user_id user)
                      :userName      clean-email
                      :acceptedTOS   (:accept_tos user)
@@ -50,17 +53,20 @@
 (defn register [{:keys [params]}]
   (let [reset-key             (str (UUID/randomUUID))
         email                 (str/lower-case (str/trim (or (:email params) "")))
-        password              (:password params)
-        password-confirmation (:passwordConfirmation params)]
+        password              (str (:password params))
+        password-confirmation (str (:passwordConfirmation params))]
     (if-let [error-msg (get-register-errors email password password-confirmation)]
       (data-response error-msg)
-      (let [user-id   (sql-primitive (call-sql "add_user" {:log? false} email password reset-key))
-            _         (call-sql "user_verified" user-id)
-            user-info {:userId      user-id
-                       :userName    email
-                       :acceptedTOS nil
-                       :userRole    "user"}]
-        (data-response "" {:session user-info})))))
+      (try
+        (let [user-id   (sql-primitive (call-sql "add_user" {:log? false} email password reset-key))
+              _         (call-sql "user_verified" user-id)
+              user-info {:userId      user-id
+                         :userName    email
+                         :acceptedTOS nil
+                         :userRole    "user"}]
+          (data-response "" {:session user-info}))
+        (catch Exception _
+          (data-response "No se pudo registrar la cuenta. Por favor verifica que los datos sean correctos."))))))
 
 (defn logout [_]
   (data-response "" {:session nil}))
