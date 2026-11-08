@@ -193,13 +193,17 @@ class HelpSlideDialog extends React.Component {
 
 export function NavSideBar ({tab, setTab, userId}) {
   function highlightsHandler() {
-    setTab('highlights');
+    if (window.location.pathname !== "/home" && window.location.pathname !== "/") {
+      window.location.href = "/home";
+    } else {
+      setTab('highlights');
+    }
   };
   function institutionsHandler() {
-    setTab('institutions');
+    window.location.href = "/review-institution?institutionId=1";
   };
   function collectHandler() {
-    setTab('collect');
+    window.location.href = "/review-institution?institutionId=1";
   };
   function manageHandler() {
     setTab('manage');
@@ -207,24 +211,18 @@ export function NavSideBar ({tab, setTab, userId}) {
   
   const navTabs = {
     highlights:
-    {title: "Highlights",
+    {title: "INICIO",
      icon: "compass",
      clickHandler: highlightsHandler},
     institutions:
-    {title: "Institutions",
+    {title: "INAB",
      icon: "group",
      clickHandler: institutionsHandler},
-    ... (userId && //must be logged in to see collection tab
+    ... (userId &&
          {collect: 
-          {title: "Collect",
+          {title: "VALIDAR",
            icon: "collect",
            clickHandler: collectHandler}}),
-    /*
-      manage:
-      {title: "Manage",
-      icon: "settings",
-      clickHandler: manageHandler},
-    */
   };
 
   function NavTab ({icon, clickHandler, title, tabkey}) {
@@ -234,7 +232,7 @@ export function NavSideBar ({tab, setTab, userId}) {
            style={tab === tabkey ? {paddingLeft: "8px"} : null}>
         <SvgIcon icon={icon} size="2rem" 
         />
-        <p style={{color: "white"}}>{title}</p>
+        <p style={{color: "white", fontWeight: 600, letterSpacing: "0.04em"}}>{title}</p>
       </div>
     );
   }
@@ -268,7 +266,7 @@ export function NavTopBar ({version, userName, userId, children}) {
   useHeightAsCssVar(navRef, "--navbar-height", { ignore: isMobileNavMenuOpen });
 
   function autoShowHelpMenu (page) {
-    const autoShowPages = ["home"];
+    const autoShowPages = [];
     const key = `${page}:seen`;
     if (autoShowPages.includes(page) && !getPreference(key)) {
       toggleHelpMenu(true);
@@ -354,21 +352,22 @@ export function NavTopBar ({version, userName, userId, children}) {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav mr-auto">
             {[
-              { page: "Inicio", link: "/home" },
-            ].map(({ page, link }) => (
+              { page: "INICIO", link: "/home", match: "/home" },
+              { page: "INAB", link: "/review-institution?institutionId=1", match: "/review-institution" },
+            ].map(({ page, link, match }) => (
               <li
                 key={page}
-                className={"nav-item" + (uri === "/home" && " active")}
+                className={"nav-item" + (uri === match ? " active" : "")}
               >
-                <a className="nav-link" href={link}>
+                <a className="nav-link" href={link} style={{ fontWeight: 600 }}>
                   {page}
                 </a>
               </li>
             ))}
             {!loggedOut && (
-              <li className={"nav-item" + (uri === "/account" && " active")}>
+              <li className={"nav-item" + (uri === "/account" ? " active" : "")}>
                 <a className="nav-link" href={"/account?accountId=" + userId}>
-                  Account
+                  Cuenta
                 </a>
               </li>
             )}
@@ -387,7 +386,7 @@ export function NavTopBar ({version, userName, userId, children}) {
                 }}
               >
                 <SvgIcon color="purple" cursor="pointer" icon="help" size="2rem" />
-                <span className="tooltip_content">Help</span>
+                <span className="tooltip_content">Ayuda</span>
               </div>
             )}
           </div>

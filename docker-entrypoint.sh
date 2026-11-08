@@ -40,55 +40,57 @@ until PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -
 done
 echo "[INFO] Conexión exitosa a PostgreSQL."
 
-# 3. Verificar extensiones PostGIS y pgcrypto
+# 3. Asegurar extensiones PostGIS y pgcrypto (reparar pgcrypto si crypt fue eliminado antes)
 echo "[INFO] Verificando extensiones PostGIS y pgcrypto..."
-PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF NOT EXISTS pgcrypto;" >/dev/null 2>&1 || true
-
-# 4. Verificar si la base de datos ya cuenta con las tablas
-TABLE_COUNT=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'projects';" 2>/dev/null || echo "0")
-
-if [ "$TABLE_COUNT" = "0" ] || [ -z "$TABLE_COUNT" ]; then
-    echo "[INFO] Base de datos nueva detectada. Inicializando esquemas, funciones y datos de INAB-SIG..."
-    clojure -M:build-db build-all --dev-data || true
-    echo "[INFO] Proceso de inicialización ejecutado."
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS postgis;" || true
+HAS_CRYPT=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM pg_proc WHERE proname = 'crypt';" 2>/dev/null || echo "0")
+if [ "$HAS_CRYPT" = "0" ] || [ -z "$HAS_CRYPT" ]; then
+    echo "[INFO] Restaurando extensión pgcrypto..."
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "DROP EXTENSION IF EXISTS pgcrypto CASCADE; CREATE EXTENSION pgcrypto;" || true
 else
-    echo "[INFO] Base de datos existente detectada."
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" || true
 fi
 
-# 5. Asegurar SIEMPRE que las funciones SQL (check_login, etc.) estén cargadas
-HAS_FUNCTIONS=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM pg_proc WHERE proname = 'check_login';" 2>/dev/null || echo "0")
-if [ "$HAS_FUNCTIONS" = "0" ] || [ -z "$HAS_FUNCTIONS" ]; then
-    echo "[INFO] Funciones SQL faltantes. Instalando funciones en PostgreSQL..."
-    for f in src/sql/functions/clear_functions.sql \
-             src/sql/functions/doi.sql \
-             src/sql/functions/geoai.sql \
-             src/sql/functions/geodash.sql \
-             src/sql/functions/imagery.sql \
-             src/sql/functions/member.sql \
-             src/sql/functions/metrics.sql \
-             src/sql/functions/plots.sql \
-             src/sql/functions/project.sql; do
-        if [ -f "$f" ]; then
-            echo "       Instalando $f..."
-            PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$f" >/dev/null 2>&1 || true
-        fi
-    done
-    echo "[INFO] Funciones SQL verificadas e instaladas."
+# 4. Verificar si las tablas existen; si no, cargar esquema base
+TABLE_COUNT=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'projects';" 2>/dev/null || echo "0")
+if [ "$TABLE_COUNT" = "0" ] || [ -z "$TABLE_COUNT" ]; then
+    echo "[INFO] Creando tablas del sistema desde src/sql/tables/all.sql..."
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "src/sql/tables/all.sql" || true
 fi
 
-# 6. Asegurar que el usuario administrador de INAB exista
+# 5. Cargar SIEMPRE las funciones SQL en el orden estricto de dependencias (project -> member -> imagery -> plots -> geodash -> geoai -> doi -> metrics)
+echo "[INFO] Sincronizando funciones SQL en orden de dependencias..."
+for f in src/sql/functions/project.sql \
+         src/sql/functions/member.sql \
+         src/sql/functions/imagery.sql \
+         src/sql/functions/plots.sql \
+         src/sql/functions/geodash.sql \
+         src/sql/functions/geoai.sql \
+         src/sql/functions/doi.sql \
+         src/sql/functions/metrics.sql; do
+    if [ -f "$f" ]; then
+        echo "       Cargando $f..."
+        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$f" >/dev/null || true
+    fi
+done
+
+HAS_CHECK_LOGIN=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM pg_proc WHERE proname = 'check_login';" 2>/dev/null || echo "0")
+echo "[INFO] Función check_login activa: $HAS_CHECK_LOGIN"
+
+# 6. Asegurar datos base (roles, usuario guest, usuario admin@inab.gob.gt e institución INAB - SIG)
+ROLE_COUNT=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM roles;" 2>/dev/null || echo "0")
+if [ "$ROLE_COUNT" = "0" ] || [ -z "$ROLE_COUNT" ]; then
+    echo "[INFO] Insertando roles y usuario invitado por defecto..."
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "src/sql/default_data/default_data.sql" || true
+fi
+
 HAS_ADMIN=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM users WHERE email = 'admin@inab.gob.gt';" 2>/dev/null || echo "0")
 if [ "$HAS_ADMIN" = "0" ] || [ -z "$HAS_ADMIN" ]; then
-    echo "[INFO] Creando usuario administrador inicial de INAB..."
-    if [ -f "src/sql/default_data/default_data.sql" ]; then
-        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "src/sql/default_data/default_data.sql" >/dev/null 2>&1 || true
-    fi
-    if [ -f "src/sql/dev_data/dev_data.sql" ]; then
-        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "src/sql/dev_data/dev_data.sql" >/dev/null 2>&1 || true
-    fi
-    echo "[INFO] Usuario admin@inab.gob.gt listo."
+    echo "[INFO] Inicializando usuarios de INAB, institución INAB - SIG y proyecto piloto..."
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "src/sql/dev_data/dev_data.sql" || true
+    echo "[INFO] Datos iniciales de INAB · SIG cargados correctamente."
 fi
 
-# 4. Iniciar servidor Ring/Triangulum
+# 7. Iniciar servidor Ring/Triangulum
 echo "[INFO] Iniciando servidor web INAB-SIG en el puerto $HTTP_PORT (modo prod)..."
 exec clojure -M:production:server start -p "$HTTP_PORT"

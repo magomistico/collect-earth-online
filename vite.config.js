@@ -44,6 +44,7 @@ export default defineConfig({
         "src/js/projectQaqcDashboard.jsx",
         "src/js/projectWizard.jsx",
         "src/js/register.jsx",
+        "src/js/reviewInstitution.jsx",
         "src/js/simpleCollection.jsx",
         "src/js/userDisagreement.jsx",
         "src/js/utils/constants.jsx",

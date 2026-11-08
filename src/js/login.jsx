@@ -39,8 +39,8 @@ export function Login ({returnurl}) {
            {loginAtom.modal.alert.alertMessage}
          </Modal>}
 
-        <div className="card card-darkgreen">
-          <div className="card-header card-header-lightgreen">Sign into your account</div>
+        <div className="card card-darkgreen" style={{ minWidth: "380px", marginTop: "24px" }}>
+          <div className="card-header card-header-lightgreen">Iniciar sesión en tu cuenta</div>
           <div className="card-body">
             <form
               onSubmit={(e) => {
@@ -49,7 +49,7 @@ export function Login ({returnurl}) {
               }}
             >
               <div className="form-group">
-                <label htmlFor="email">Email address</label>
+                <label htmlFor="email">Correo electrónico</label>
                 <input
                   className="form-control"
                   id="email"
@@ -57,13 +57,13 @@ export function Login ({returnurl}) {
                     e.persist ();
                     setLoginAtom((s) => ({...s,  email: e.target.value }));
 		  }}
-                  placeholder="Enter email"
+                  placeholder="admin@inab.gob.gt"
                   type="email"
                   value={loginAtom.email}
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">Contraseña</label>
                 <input
                   className="form-control"
                   id="password"
@@ -71,20 +71,19 @@ export function Login ({returnurl}) {
                     e.persist();		    
 		    setLoginAtom ((s) => ({...s,  password: e.target.value }));
 		  }}
-                  placeholder="Password"
+                  placeholder="Contraseña"
                   type="password"
                   value={loginAtom.password}
                 />
               </div>
-              <div className="d-flex justify-content-between align-items-center">
-                <a href="/password-request">Forgot your password?</a>
+              <div className="d-flex justify-content-end align-items-center">
                 <button className="btn btn-darkgreen" type="submit">
-                  Login
+                  Iniciar Sesión
                 </button>
               </div>
             </form>
           </div>
-          <div className="card-header-lightgreen card-footer">New to CEO?</div>
+          <div className="card-header-lightgreen card-footer">¿Nuevo usuario en INAB · SIG?</div>
           <div className="card-body">
             <div className="d-flex justify-content-end">
               <input
@@ -92,7 +91,7 @@ export function Login ({returnurl}) {
                 name="register"
                 onClick={() => window.location.assign("/register")}
                 type="button"
-                value="Register"
+                value="Registrarse"
               />
             </div>
           </div>
@@ -108,7 +107,7 @@ export function pageInit(params, session) {
     <NavigationBar userId={session.userId} userName={session.userName} version={session.versionDeployed}>
       <BreadCrumbs
         crumbs={[
-          {display: "Login",
+          {display: "Iniciar Sesión",
            id:"login"}]}
       />
       <Login returnurl={params.returnurl || ""} />

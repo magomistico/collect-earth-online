@@ -39,7 +39,7 @@
    [:get  "/geo-dash-help"]                  {:handler (render-page "/geo-dash-help")}
    [:get  "/home"]                           {:handler (render-page "/home")}
    [:get  "/institution-dashboard"]          {:handler (render-page "/institution-dashboard")}
-   [:get  "/review-institution"]             {:handler (render-page "/institution-dashboard")}
+   [:get  "/review-institution"]             {:handler (render-page "/review-institution")}
    [:get  "/login"]                          {:handler (render-page "/login")}
    [:get  "/project-dashboard"]              {:handler     (render-page "/project-dashboard")
                                               :auth-type   :admin

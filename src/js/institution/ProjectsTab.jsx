@@ -37,14 +37,14 @@ export const ProjectsTab = ({
   const columns = useMemo(
     () => [
       {
-        name: "Visibility",
-        selector: (row) => row.isDraft ? 'draft' : row.privacyLevel || "—",
+        name: "Visibilidad",
+        selector: (row) => row.isDraft ? 'Borrador' : row.privacyLevel || "—",
         sortable: true,
         width: "120px",
         grow: 0.8,
       },
       {
-        name: "Project Name",
+        name: "Nombre del Proyecto / Formulario",
         selector: (row) => row.name,
         sortable: true,
         sortFunction: (rowA, rowB) => {
@@ -65,14 +65,11 @@ export const ProjectsTab = ({
 	),
       },
       {
-        name: "Date Created",
+        name: "Fecha de Creación",
         width: "160px",
         selector: (row) => row.createdDate,
         sortable: true,
-        // Default sort: most recent first (applied via defaultSortFieldId / defaultSortAsc on the table)
         id: "createdDate",
-        // Dates are "YYYY-MM-DD" strings, so they compare correctly as text.
-        // Rows without a date (e.g. drafts) are treated as the oldest.
         sortFunction: (rowA, rowB) => {
           const a = rowA.createdDate || "";
           const b = rowB.createdDate || "";
@@ -84,14 +81,14 @@ export const ProjectsTab = ({
             : "—",
       },
       {
-        name: "Total Plots",
+        name: "Total Parcelas",
         width: "140px",
         selector: (row) => row.numPlots ?? 0,
         sortable: true,
         right: true,
       },
       {
-        name: "Completion %",
+        name: "Avance %",
         width: "160px",
         selector: (row) => row.percentComplete ?? -1, 
         sortable: true,
@@ -106,16 +103,16 @@ export const ProjectsTab = ({
         },
       },
       {
-        name: "Publication",
+        name: "Estado",
         width: "140px",
-        selector: (row) => row.isDraft ? 'draft' : row.availability ?? "Unpublished",
+        selector: (row) => row.isDraft ? 'Borrador' : row.availability ?? "No publicado",
         sortable: true,
       },
       
       {
         omit: !isAdmin,
         width: "60px",
-        name: "Edit",
+        name: "Editar",
         grow: .2,
         cell: (row)=> <div
                         className="edit-button"
@@ -130,14 +127,14 @@ export const ProjectsTab = ({
                         <SvgIcon icon="edit" size="1.2rem"/>
                       </div>
       },
-      {width: "120px",
+      {width: "130px",
         cell: (row)=> !row.isDraft &&
           <input
             className="btn btn-outline-darkgreen btn-sm w-100"
             onClick={() => window.open(`/collection?projectId=${row.id}&institutionId=${institutionId}`)
             }
             type="button"
-            value="Collect"
+            value="Validar"
           />}
     ],
     [isAdmin]
@@ -209,7 +206,7 @@ export const ProjectsTab = ({
     <div className="tab-container">
       <div className="tab-header">
         <h2 className="tab-title">
-          Projects ({projectList.length})
+          Proyectos y Formularios ({projectList.length})
         </h2>
 
         {isAdmin && (
@@ -219,7 +216,7 @@ export const ProjectsTab = ({
             onClick={() => window.location.assign(`/project-wizard?institutionId=${institutionId}`)}
           >
             <SvgIcon icon="plus" size="1rem" />
-            Add New Project
+            Crear Nuevo Proyecto
           </button>
         )}
       </div>
@@ -227,7 +224,7 @@ export const ProjectsTab = ({
       <div className="tab-filter">
         <input
           type="text"
-          placeholder="Search by name"
+          placeholder="Buscar proyecto por nombre..."
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
         />
@@ -235,10 +232,10 @@ export const ProjectsTab = ({
       
       <div className="projects-legend">
         {[
-          ["No Plots collected", "#D98EB2"],
-          ["Some Plots collected", "#FEBD5B"],
-          ["All Plots collected", "#84D0AC"],
-          ["Simplified", "#9286D3"]
+          ["Sin parcelas validadas", "#D98EB2"],
+          ["Validación en progreso", "#FEBD5B"],
+          ["Validación completada (100%)", "#84D0AC"],
+          ["Simplificado", "#9286D3"]
         ].map(([title, color]) => (
           <div key={title} className="projects-legend-item">
             <span className="projects-legend-symbol" style={{ color }}>⯀</span>
@@ -272,7 +269,7 @@ export const ProjectsTab = ({
         highlightOnHover
         conditionalRowStyles={conditionalRowStyles}
         customStyles={customStyles}
-        noDataComponent="No projects found."
+        noDataComponent="No se encontraron proyectos registrados."
         sortIcon={<SvgIcon icon="downCaret" size="0.9rem" />}
       />
     </div>
