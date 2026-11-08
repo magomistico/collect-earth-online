@@ -24,14 +24,20 @@ FROM clojure:temurin-17-tools-deps-jammy
 
 WORKDIR /app
 
-# Instalar utilidades de sistema
+# Instalar utilidades de sistema y librerías C de Python para soporte ARM64/AMD64 de libpython-clj
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
+    python3-dev \
+    libpython3-dev \
     postgresql-client \
     p7zip-full \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Variables de entorno para permitir a libpython-clj2 localizar la librería compartida C (.so)
+ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib:${LD_LIBRARY_PATH}"
+ENV PYTHON_EXECUTABLE="/usr/bin/python3"
 
 # Instalar dependencias Python (para interop GeoDash GEE)
 COPY requirements.txt ./

@@ -3,3 +3,4 @@ pytest
 python-dateutil
 shapely
 shapely_geojson
+earthengine-api
