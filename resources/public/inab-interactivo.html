@@ -48,9 +48,9 @@
       padding-bottom: 14px;
     }
     .brand-title {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.09em;
       color: var(--text-main);
       display: flex;
       align-items: center;
@@ -59,15 +59,15 @@
     }
     .brand-sig {
       color: var(--text-sig);
-      font-weight: 700;
+      font-weight: 800;
     }
     .brand-sub {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.22em;
       color: var(--text-sub);
-      margin-top: 3px;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -125,10 +125,10 @@
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const availableHeight = height - 50;
-      scale = Math.min(width * 0.85 / 470, availableHeight / 360, 1.4);
+      const availableHeight = height - 55;
+      scale = Math.min(width * 0.95 / 400, availableHeight / 280, 2.2);
       centerX = width / 2;
-      centerY = availableHeight / 2;
+      centerY = availableHeight / 2 - 8;
 
       for (const p of particles) {
         const tx = centerX + p.ox * scale;
@@ -183,7 +183,7 @@
         ctx.beginPath();
         for (const p of particles) {
           if (p.color !== c) continue;
-          const r = Math.max(0.4, p.radius * Math.max(0.7, scale));
+          const r = Math.max(0.6, p.radius * Math.max(0.9, scale * 1.05));
           ctx.moveTo(p.x + r, p.y);
           ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
         }

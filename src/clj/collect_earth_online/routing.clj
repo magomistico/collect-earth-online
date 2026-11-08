@@ -38,9 +38,8 @@
                                               :auth-action :redirect}
    [:get  "/geo-dash-help"]                  {:handler (render-page "/geo-dash-help")}
    [:get  "/home"]                           {:handler (render-page "/home")}
-   [:get  "/institution-dashboard"]          {:handler     (render-page "/institution-dashboard")
-                                              :auth-type   :admin
-                                              :auth-action :redirect}
+   [:get  "/institution-dashboard"]          {:handler (render-page "/institution-dashboard")}
+   [:get  "/review-institution"]             {:handler (render-page "/institution-dashboard")}
    [:get  "/login"]                          {:handler (render-page "/login")}
    [:get  "/project-dashboard"]              {:handler     (render-page "/project-dashboard")
                                               :auth-type   :admin

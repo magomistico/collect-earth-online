@@ -38,12 +38,10 @@ function Home ({ userId, userName, version }) {
       });
   }
   useEffect(()=>{
-    Promise.all([getUserStats(userId)])
-      .catch((response) => {
-        setAppState (prev => ({ ... prev, modal: {alert: {alertType: "Collection Alert", alertMessage: "Error retrieving the collection data. See console for details."}}}));
-      })
-      .finally(() => setAppState(prev => ({... prev, modalMessage: null })));
-  }, []);
+    if (userId && userId !== -1) {
+      getUserStats(userId).catch(() => {});
+    }
+  }, [userId]);
   
   function TOSModal (){
     const [slug, setSlug] = useState("");

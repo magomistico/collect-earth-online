@@ -46,60 +46,61 @@ const InstitutionDashboard = ({ institutionId }) => {
 
   const columns = [
     {
-      name: "Project Id",
+      name: "ID",
       selector: (row) => row.id,
       sortable: true,
+      width: "100px",
     },
     {
-      name: "Project Name",
+      name: "Nombre del Proyecto",
       selector: (row) => row.name,
       minWidth: "15rem",
       sortable: true,
     },
     {
-      name: "Users Assigned",
+      name: "Usuarios Asignados",
       selector: (row) => row.stats.usersAssigned,
       center: true,
       sortable: true,
     },
     {
-      name: "Contributors",
+      name: "Colaboradores",
       selector: (row) => row.stats.contributors,
       center: true,
       sortable: true,
     },
     {
-      name: "Total Plots",
+      name: "Total Parcelas",
       selector: (row) => row.stats.totalPlots,
       center: true,
       sortable: true,
     },
     {
-      name: "Plot Assignments",
+      name: "Asignaciones",
       selector: (row) => row.stats.plotAssignments,
       center: true,
       sortable: true,
     },
     {
-      name: "Flagged Plots",
+      name: "Marcadas",
       selector: (row) => row.stats.flaggedPlots,
       center: true,
       sortable: true,
     },
     {
-      name: "Analyzed Plots",
+      name: "Analizadas",
       selector: (row) => row.stats.analyzedPlots,
       center: true,
       sortable: true,
     },
     {
-      name: "Partial Plots",
+      name: "Parciales",
       selector: (row) => row.stats.partialPlots,
       center: true,
       sortable: true,
     },
     {
-      name: "Unanalyzed Plots",
+      name: "Sin Analizar",
       selector: (row) => row.stats.unanalyzedPlots,
       center: true,
       sortable: true,
@@ -138,9 +139,9 @@ const InstitutionDashboard = ({ institutionId }) => {
       <div className="d-flex w-100 justify-content-start align-items-center">
         <input
           type="text"
-          placeholder="Filter by Project Name"
+          placeholder="Filtrar por nombre de proyecto..."
           className="form-control"
-          style={{ width: "250px", marginRight: "10px" }}
+          style={{ width: "260px", marginRight: "10px" }}
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
         />
@@ -148,7 +149,7 @@ const InstitutionDashboard = ({ institutionId }) => {
           className="btn bg-darkgreen text-white" 
           onClick={handleExport}
         >
-          Export
+          Exportar CSV
         </button>
       </div>
     );
@@ -165,9 +166,9 @@ const InstitutionDashboard = ({ institutionId }) => {
 
       <div
         className="bg-darkgreen mb-3 no-container-margin"
-        style={{ width: "100%" }}
+        style={{ width: "100%", padding: "16px 24px" }}
       >
-        <h1>Institution Dashboard</h1>
+        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "700" }}>Panel Institucional · INAB - SIG</h1>
       </div>
       {projectList.length > 0 ? (
         <div id="srd" style={{ width: "100%", margin: "10px", padding: "3%" }}>
@@ -179,11 +180,10 @@ const InstitutionDashboard = ({ institutionId }) => {
           />
         </div>
       ) : (
-        <div className="mx-4 d-flex">
-          <SvgIcon icon="alert" size="1.2rem" />
-          <p style={{ marginLeft: "0.4rem" }}>
-            Your dashboard is empty. In order to view project data here, please
-            create a new project.
+        <div className="mx-4 my-3 d-flex align-items-center" style={{ width: "90%", padding: "20px 24px", background: "#f8faf9", borderRadius: "8px", border: "1px solid #d6e2dd" }}>
+          <SvgIcon icon="alert" size="1.4rem" color="#1F7067" />
+          <p style={{ marginLeft: "0.8rem", marginBottom: 0, fontSize: "14px", color: "#2f3e2f" }}>
+            El panel de proyectos está listo. Cuando se registren proyectos de validación forestal para el INAB, se mostrarán aquí con sus métricas y progreso.
           </p>
         </div>
       )}
@@ -196,10 +196,10 @@ export function pageInit(params, session) {
     <NavigationBar userId={session.userId} userName={session.userName} version={session.versionDeployed}>
       <BreadCrumbs
         crumbs={[
-          {display:"Institution Dashboard",
+          {display:"Panel Institucional · INAB",
            id: "inst-dash",}]}
       />
-      <InstitutionDashboard institutionId={params.institutionId || "0"} />
+      <InstitutionDashboard institutionId={params.institutionId || "1"} />
     </NavigationBar>,
     document.getElementById("app")
   );
