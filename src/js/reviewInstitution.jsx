@@ -98,16 +98,12 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
     fetch(`/get-institution-imagery?institutionId=${institutionId}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r)))
       .then((data) => {
-        const sorted = [...data].sort(sortImageryByVisibility);
+        const sorted = Array.isArray(data) ? [...data].sort(sortImageryByVisibility) : [];
         setImageryList(sorted);
       })
       .catch((err) => {
         console.log(err);
         setImageryList([]);
-        showAlert({
-          title: "Error",
-          body: "Error retrieving the imagery list. See console for details.",
-        });
       });
   };
 
@@ -419,16 +415,15 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
   }, []);
 
   return (
-    <div className="reviewInstitution" style={{marginLeft: '100px'}}>
+    <div className="reviewInstitution" style={{ marginLeft: "100px" }}>
       <SidebarTabs
         tabs={[
           { id: "projects", label: "Proyectos y Formularios", icon: "projects", badge: safeLength(state.projectList) },
-          { id: "imagery", label: "Imágenes Satelitales", icon: "imagery", badge: safeLength(state.imageryList) },
           { id: "users", label: "Usuarios", icon: "users", badge: safeLength(state.usersList) },
         ]}
         onUpdateInstitution={updateInstitution}
         institutionName={state.institutionDetails.name || "INAB · SIG"}
-        activeTab={state.selectedTab}
+        activeTab={state.selectedTab === "imagery" ? "projects" : state.selectedTab}
         onChange={setSelectedTab}
         institutionId={institutionId}
         isAdmin={state.isAdmin}
@@ -442,7 +437,7 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
         {state.modalMessage && <LoadingModal message={state.modalMessage} />}
       </div>
       <InstitutionDescription />
-      {state.selectedTab === "projects" && (
+      {(state.selectedTab === "projects" || state.selectedTab === "imagery") && (
         <ProjectsTab
           institutionId={institutionId}
           projectList={state.projectList}
@@ -452,16 +447,6 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
           deleteProjectsBulk={deleteProjectsBulk}
           editProjectsBulk={editProjectsBulk}
           downloadProjectsBulk={downloadProjectsBulk}
-        />
-      )}
-      {state.selectedTab === "imagery" && (
-        <ImageryTab
-          institutionId={institutionId}
-          imageryList={state.imageryList}
-          editImagery={editImageryBulk}
-          deleteImagery={deleteImageryBulk}
-          isAdmin={state.isAdmin}
-          getImageryList={getImageryList}
         />
       )}
       {state.selectedTab === "users" && (
@@ -481,31 +466,40 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
 export const InstitutionDescription = () => {
   const [state] = useAtom(institutionPageAtom);
   const institution = state?.institutionDetails || {};
-  if (!institution?.description) return null;
 
   return (
     <div className="inst-desc-container">
-      <div className="inst-desc-box">
-        <div className="inst-desc-title">
-          <span style={{textDecorationLine: 'underline', cursor: 'pointer'}}
-                onClick={()=>window.open(institution?.url)}
-          >{institution?.name}</span>
-        </div>
-
-        {institution.base64Image && (
-          <div className="inst-desc-logo-wrapper">
-            <img
-              src={`data:image/png;base64,${institution.base64Image}`}
-              alt="Institution logo"
-              className="inst-desc-logo"
-            />
+      <div className="inst-desc-box" style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+        <img
+          src="https://manejoforestal.inab.gob.gt/img/inab.png"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/img/inab-logo.svg";
+          }}
+          alt="INAB · SIG"
+          style={{
+            height: "74px",
+            width: "auto",
+            objectFit: "contain",
+            filter: "drop-shadow(0 0 14px rgba(114, 184, 121, 0.25))",
+          }}
+        />
+        <div style={{ flex: 1, minWidth: "240px" }}>
+          <div style={{ display: "inline-block", padding: "2px 10px", borderRadius: "999px", background: "rgba(114, 184, 121, 0.15)", border: "1px solid rgba(114, 184, 121, 0.3)", color: "#9ed999", fontSize: "0.72rem", fontWeight: 600, marginBottom: "0.35rem" }}>
+            Institución Oficial · Guatemala
           </div>
-        )}
-        <p className="inst-desc-text">{institution.description}</p>
-        <p className="inst-desc-text">Instititution Page: <span style={
-          {textDecorationLine: 'underline', cursor: 'pointer'}
-        }onClick={()=>window.open(institution?.url)
-                 }>{institution?.url}</span></p>
+          <div className="inst-desc-title" style={{ marginBottom: "0.25rem" }}>
+            <span
+              style={{ cursor: "pointer", color: "#ffffff", fontWeight: 800, fontSize: "1.35rem" }}
+              onClick={() => window.open(institution?.url || "https://www.inab.gob.gt")}
+            >
+              {institution?.name || "INAB - SIG"}
+            </span>
+          </div>
+          <p className="inst-desc-text" style={{ color: "#a1a1aa", margin: "0 0 0.25rem 0", fontSize: "0.86rem" }}>
+            {institution.description || "Instituto Nacional de Bosques - Sistema de Información Geográfica y Validación Forestal"}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -786,6 +780,14 @@ export const EditInstitutionModal = ({ onClose, onSave}) => {
 
 function ReviewInstitutionPage ({userId, userName, versionDeployed, institutionName, institutionId}) {
   const targetInstId = parseInt(institutionId || "1", 10) || 1;
+  if (!userId || userId <= 0) {
+    return (
+      <AuthScreen
+        returnurl={`/review-institution?institutionId=${targetInstId}`}
+        initialTab="login"
+      />
+    );
+  }
   return (
     <NavigationBar
       fxns={{

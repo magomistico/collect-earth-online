@@ -63,17 +63,26 @@ $$ LANGUAGE SQL;
 --  USER FUNCTIONS
 --
 
--- Adds a new user to the database
+-- Adds a new user to the database (auto-verified and linked to INAB - SIG institution 1)
 CREATE OR REPLACE FUNCTION add_user(_email text, _password text, _reset_key text)
  RETURNS integer AS $$
-
+ DECLARE
+    _new_uid integer;
+ BEGIN
     INSERT INTO users
-        (email, password, reset_key)
+        (email, password, reset_key, verified)
     VALUES
-        (_email, crypt(_password, gen_salt('bf')), _reset_key)
-    RETURNING user_uid
+        (LOWER(TRIM(_email)), crypt(_password, gen_salt('bf')), _reset_key, TRUE)
+    RETURNING user_uid INTO _new_uid;
 
-$$ LANGUAGE SQL;
+    INSERT INTO institution_users (institution_rid, user_rid, role_rid)
+    SELECT 1, _new_uid, 2
+    WHERE EXISTS (SELECT 1 FROM institutions WHERE institution_uid = 1)
+    ON CONFLICT DO NOTHING;
+
+    RETURN _new_uid;
+ END
+$$ LANGUAGE plpgsql;
 
 -- Get information for single user
 CREATE OR REPLACE FUNCTION get_user_by_email(_email text)
@@ -85,7 +94,7 @@ CREATE OR REPLACE FUNCTION get_user_by_email(_email text)
 
     SELECT user_uid, administrator, reset_key
     FROM users
-    WHERE email = _email
+    WHERE LOWER(TRIM(email)) = LOWER(TRIM(_email))
 
 $$ LANGUAGE SQL;
 
@@ -118,7 +127,6 @@ CREATE OR REPLACE FUNCTION get_all_users_by_institution_id(_institution_id integ
     INNER JOIN roles
         ON roles.role_uid = iu.role_rid
     WHERE iu.institution_rid = _institution_id
-        AND administrator = FALSE
         AND email <> 'guest'
 
 $$ LANGUAGE SQL;
@@ -132,9 +140,9 @@ CREATE OR REPLACE FUNCTION check_login(_email text, _password text)
     accept_tos       text
  ) AS $$
 
-    SELECT user_uid, administrator, verified, accept_tos
+    SELECT user_uid, administrator, TRUE AS verified, accept_tos
     FROM users
-    WHERE email = _email
+    WHERE LOWER(TRIM(email)) = LOWER(TRIM(_email))
         AND password = crypt(_password, password)
 
 $$ LANGUAGE SQL;

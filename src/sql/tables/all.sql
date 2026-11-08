@@ -211,3 +211,75 @@ CREATE TABLE doi(
        full_data jsonb NOT NULL,
        created timestamp DEFAULT NOW()
 );
+
+-- =====================================================================
+-- SCHEMA MIGRATIONS (2024 - 2026) REQUIRED BY SQL FUNCTIONS
+-- =====================================================================
+
+DO $$ BEGIN
+    CREATE TYPE project_type AS ENUM ('simplified', 'regular');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE visibility_type AS ENUM ('public', 'private', 'platform');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS accepted_terms boolean DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS accept_tos text;
+
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS learning_material text;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS type project_type DEFAULT 'regular';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS reference_plot_rid integer REFERENCES plots (plot_uid) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS geoai_assets jsonb;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS highlight boolean;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS accept_tos text;
+
+ALTER TABLE user_plots ADD COLUMN IF NOT EXISTS imagery_ids jsonb;
+ALTER TABLE user_plots ADD COLUMN IF NOT EXISTS disabled boolean DEFAULT FALSE;
+ALTER TABLE user_plots ADD COLUMN IF NOT EXISTS used_kml boolean;
+ALTER TABLE user_plots ADD COLUMN IF NOT EXISTS used_geodash boolean;
+ALTER TABLE user_plots ADD COLUMN IF NOT EXISTS admin_review boolean DEFAULT FALSE;
+
+DO $$ BEGIN
+    ALTER TABLE imagery ALTER COLUMN visibility TYPE visibility_type USING visibility::visibility_type;
+EXCEPTION
+    WHEN others THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS project_drafts (
+    project_draft_uid SERIAL PRIMARY KEY,
+    user_rid INT REFERENCES users (user_uid) ON DELETE CASCADE,
+    institution_rid INT REFERENCES institutions (institution_uid) ON DELETE CASCADE,
+    name text NOT NULL,
+    project_state JSONB,
+    created_date date DEFAULT NOW(),
+    updated_date date DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS metrics_users (
+    metric_users_uid SERIAL PRIMARY KEY,
+    user_rid INTEGER NOT NULL REFERENCES users (user_uid) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_date DATE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS data_sharing (
+    data_sharing_uid SERIAL PRIMARY KEY,
+    interpreter_name TEXT NOT NULL,
+    accepted_date DATE DEFAULT NOW(),
+    ip TEXT,
+    project_rid INTEGER REFERENCES projects(project_uid) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS geoai_cache (
+    geoai_cache_uid SERIAL PRIMARY KEY,
+    project_rid integer NOT NULL REFERENCES projects(project_uid) ON DELETE CASCADE ON UPDATE CASCADE,
+    plot_rid integer NOT NULL REFERENCES plots(plot_uid) ON DELETE CASCADE ON UPDATE CASCADE,
+    similar_plots integer[],
+    metadata jsonb,
+    CONSTRAINT geoai_cache_project_plot_unique UNIQUE (project_rid, plot_rid)
+);
+

@@ -5,12 +5,16 @@ import { INAB_LOGO_SHAPE } from "./home/inabShapeData";
 function Home({ userId, userName }) {
   const canvasRef = useRef(null);
   const anchorRef = useRef(null);
-  const controlsRef = useRef({
-    disperse: () => {},
-    assemble: () => {},
-  });
 
   const loggedOut = !userName || userName === "guest" || !userId || userId === -1;
+
+  const handleEnterPortal = () => {
+    if (loggedOut) {
+      window.location.assign("/login?returnurl=" + encodeURIComponent("/review-institution?institutionId=1"));
+    } else {
+      window.location.assign("/review-institution?institutionId=1");
+    }
+  };
 
   const handleLogout = () => {
     fetch("/logout", { method: "POST" }).then(() => window.location.assign("/home"));
@@ -35,7 +39,7 @@ function Home({ userId, userName }) {
 
     const palette = ["#72b879", "#9ed999", "#4d9860", "#bfe8bc", "#edf9eb"];
 
-    let morphProgress = 0; // 0 = full screen stars, 1 = assembled center logo
+    let morphProgress = 0;
     let morphTarget = 0;
 
     let seed = 49217;
@@ -44,702 +48,532 @@ function Home({ userId, userName }) {
       return seed / 4294967296;
     };
 
+    // Estrellas cósmicas de fondo que titilan suavemente en toda la pantalla
+    const bgStars = Array.from({ length: 190 }, () => ({
+      x: random() * width,
+      y: random() * height,
+      vx: (random() - 0.5) * 0.18,
+      vy: (random() - 0.5) * 0.18,
+      r: 0.4 + random() * 0.9,
+      phase: random() * Math.PI * 2,
+    }));
+
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const filteredShape = INAB_LOGO_SHAPE.filter((_, i) => !coarse || i % 2 === 0);
 
     const particles = filteredShape.map(([x, y, bright], i) => {
-      const starX = random() * width;
-      const starY = random() * height;
-      const starVx = (random() - 0.5) * 0.35;
-      const starVy = (random() - 0.5) * 0.35;
+      const angle = random() * Math.PI * 2;
+      const dist = 120 + random() * Math.max(width, height) * 0.75;
+      const starX = width / 2 + Math.cos(angle) * dist;
+      const starY = height / 2 + Math.sin(angle) * dist;
 
       return {
         ox: x,
         oy: y,
         starX,
         starY,
-        starVx,
-        starVy,
         x: starX,
         y: starY,
-        vx: starVx,
-        vy: starVy,
+        vx: 0,
+        vy: 0,
         phase: random() * Math.PI * 2,
-        radius: 0.45 + random() * 0.55,
-        color: i % 43 === 0 ? 4 : bright ? 3 : i % 3,
-        glow: i % 71 === 0,
+        radius: 0.48 + random() * 0.62,
+        color: i % 37 === 0 ? 4 : bright ? 3 : i % 3,
+        isSpore: i % 29 === 0,
+        sporeOffset: random() * 100,
       };
     });
 
-    let pointer = { x: -9999, y: -9999, active: false };
+    let pointer = {
+      x: -9999,
+      y: -9999,
+      vx: 0,
+      vy: 0,
+      lastX: -9999,
+      lastY: -9999,
+      active: false,
+    };
 
     const onPointerMove = (e) => {
-      pointer.x = e.clientX;
-      pointer.y = e.clientY;
+      pointer.vx = e.clientX - (pointer.lastX === -9999 ? e.clientX : pointer.lastX);
+      pointer.vy = e.clientY - (pointer.lastY === -9999 ? e.clientY : pointer.lastY);
+      pointer.lastX = pointer.x = e.clientX;
+      pointer.lastY = pointer.y = e.clientY;
       pointer.active = true;
     };
     const onPointerLeave = () => {
       pointer.active = false;
     };
-    const onPointerDown = (e) => {
-      const px = e.clientX;
-      const py = e.clientY;
-      for (const p of particles) {
-        const dx = p.x - px;
-        const dy = p.y - py;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        if (dist < 180) {
-          const force = (1 - dist / 180) * 14;
-          p.vx += (dx / dist) * force;
-          p.vy += (dy / dist) * force;
-        }
-      }
-    };
 
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerleave", onPointerLeave);
-    window.addEventListener("pointerdown", onPointerDown);
 
-    function updateAnchorCenter() {
+    const updateAnchorMetrics = () => {
       width = window.innerWidth;
       height = window.innerHeight;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const rect = logoAnchor.getBoundingClientRect();
       centerX = rect.left + rect.width / 2;
       centerY = rect.top + rect.height / 2;
+      scale = Math.min(rect.width / 460, rect.height / 360) * 0.96;
+    };
 
-      const anchorW = Math.max(160, rect.width * 0.92);
-      const anchorH = Math.max(160, rect.height * 0.92);
-      scale = Math.min(anchorW / 466, anchorH / 355, 1.28);
-    }
+    window.addEventListener("resize", updateAnchorMetrics);
+    updateAnchorMetrics();
 
-    const setAssemble = () => {
+    const timerId = setTimeout(() => {
       morphTarget = 1;
-    };
+    }, 350);
 
-    const setDisperse = () => {
-      morphTarget = 0;
-      for (const p of particles) {
-        p.starX = random() * width;
-        p.starY = random() * height;
-        p.starVx = (random() - 0.5) * 0.4;
-        p.starVy = (random() - 0.5) * 0.4;
-      }
-    };
-
-    controlsRef.current.assemble = setAssemble;
-    controlsRef.current.disperse = setDisperse;
-
-    const timerId = setTimeout(setAssemble, 1000);
-
-    function update(delta) {
-      time += delta * 0.016;
-
-      if (morphProgress < morphTarget) {
-        morphProgress = Math.min(morphTarget, morphProgress + 0.03 * delta);
-      } else if (morphProgress > morphTarget) {
-        morphProgress = Math.max(morphTarget, morphProgress - 0.03 * delta);
-      }
-
-      const t = morphProgress * morphProgress * (3 - 2 * morphProgress);
-      const pointerRadius = 80;
-      const pointerRadiusSq = pointerRadius * pointerRadius;
-      const damping = Math.pow(0.89, delta);
-
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-
-        p.starX += p.starVx * delta;
-        p.starY += p.starVy * delta;
-        if (p.starX < 0) p.starX = width;
-        if (p.starX > width) p.starX = 0;
-        if (p.starY < 0) p.starY = height;
-        if (p.starY > height) p.starY = 0;
-
-        const logoX =
-          centerX + p.ox * scale + Math.sin(time * 0.7 + p.phase) * 0.5 * scale;
-        const logoY =
-          centerY + p.oy * scale + Math.cos(time * 0.6 + p.phase) * 0.5 * scale;
-
-        const targetX = p.starX * (1 - t) + logoX * t;
-        const targetY = p.starY * (1 - t) + logoY * t;
-
-        const k = 0.032 * (0.5 + 0.5 * t);
-        p.vx += (targetX - p.x) * k * delta;
-        p.vy += (targetY - p.y) * k * delta;
-
-        if (pointer.active) {
-          const dx = p.x - pointer.x;
-          const dy = p.y - pointer.y;
-          const dsq = dx * dx + dy * dy;
-          if (dsq < pointerRadiusSq && dsq > 0.1) {
-            const dist = Math.sqrt(dsq);
-            const force = (1 - dist / pointerRadius) * 3.4 * delta;
-            p.vx += (dx / dist) * force;
-            p.vy += (dy / dist) * force;
-          }
-        }
-
-        p.vx *= damping;
-        p.vy *= damping;
-        p.x += p.vx * delta;
-        p.y += p.vy * delta;
-      }
-    }
-
-    function render() {
+    const render = () => {
+      time += 0.018;
       ctx.clearRect(0, 0, width, height);
 
-      ctx.globalAlpha = 0.94;
+      const rect = logoAnchor.getBoundingClientRect();
+      centerX += (rect.left + rect.width / 2 - centerX) * 0.14;
+      centerY += (rect.top + rect.height / 2 - centerY) * 0.14;
+      const targetScale = Math.min(rect.width / 460, rect.height / 360) * 0.96;
+      scale += (targetScale - scale) * 0.14;
+
+      // 1. Estrellas de fondo en toda la pantalla
+      ctx.fillStyle = "#bfe8bc";
+      for (let i = 0; i < bgStars.length; i++) {
+        const s = bgStars[i];
+        s.x += s.vx;
+        s.y += s.vy;
+        if (s.x < 0) s.x = width;
+        if (s.x > width) s.x = 0;
+        if (s.y < 0) s.y = height;
+        if (s.y > height) s.y = 0;
+        ctx.globalAlpha = 0.12 + 0.25 * Math.sin(time * 1.4 + s.phase);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      morphProgress += (morphTarget - morphProgress) * 0.032;
+
+      // Halo esmeralda detrás del logo ensamblado
+      if (morphProgress > 0.1) {
+        const glowRadius = 210 * scale;
+        const grad = ctx.createRadialGradient(centerX, centerY, 8, centerX, centerY, glowRadius);
+        const pulse = 0.07 + Math.sin(time * 1.5) * 0.025;
+        grad.addColorStop(0, `rgba(77, 152, 96, ${pulse * morphProgress})`);
+        grad.addColorStop(0.55, `rgba(22, 83, 55, ${pulse * 0.45 * morphProgress})`);
+        grad.addColorStop(1, "rgba(6, 7, 6, 0)");
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Onda de luz diagonal recorriendo las hojas del logo
+      const waveSweep = ((time * 110) % 700) - 350;
+
       for (let c = 0; c < palette.length; c++) {
         ctx.fillStyle = palette[c];
         ctx.beginPath();
+
         for (let i = 0; i < particles.length; i++) {
           const p = particles[i];
           if (p.color !== c) continue;
-          const r = Math.max(0.45, p.radius * Math.max(0.7, scale));
+
+          // Movimiento orgánico de brisa en las copas y respiración suave
+          const windX =
+            Math.sin(time * 1.7 + p.oy * 0.028 + p.phase) * 2.1 +
+            Math.cos(time * 0.9 + p.ox * 0.02) * 1.1;
+          const windY =
+            Math.cos(time * 1.4 + p.ox * 0.028 + p.phase) * 2.1 +
+            Math.sin(time * 2.1 + p.oy * 0.03) * 0.9;
+
+          // Esporas / luciérnagas del bosque que ascienden suavemente
+          let sporeLiftY = 0;
+          let sporeSwayX = 0;
+          if (p.isSpore && morphProgress > 0.7) {
+            const cycle = (time * 0.45 + p.sporeOffset) % 1;
+            if (cycle > 0.65) {
+              const liftProgress = (cycle - 0.65) / 0.35;
+              sporeLiftY = -liftProgress * 28 * scale;
+              sporeSwayX = Math.sin(liftProgress * Math.PI * 3 + p.phase) * 8 * scale;
+            }
+          }
+
+          const breath = 1 + Math.sin(time * 1.3) * 0.018;
+          const logoX = centerX + (p.ox * breath + windX) * scale + sporeSwayX;
+          const logoY = centerY + (p.oy * breath + windY) * scale + sporeLiftY;
+
+          // Giro orbital durante la convergencia
+          const unmorphed = 1 - morphProgress;
+          const swirlAngle = unmorphed * 1.6;
+          const dxStar = p.starX - centerX;
+          const dyStar = p.starY - centerY;
+          const swirledStarX =
+            centerX + dxStar * Math.cos(swirlAngle) - dyStar * Math.sin(swirlAngle);
+          const swirledStarY =
+            centerY + dxStar * Math.sin(swirlAngle) + dyStar * Math.cos(swirlAngle);
+
+          const targetX = swirledStarX * unmorphed + logoX * morphProgress;
+          const targetY = swirledStarY * unmorphed + logoY * morphProgress;
+
+          const spring = 0.045 + morphProgress * 0.055;
+          p.vx += (targetX - p.x) * spring;
+          p.vy += (targetY - p.y) * spring;
+
+          // Interacción fluida con el cursor
+          if (pointer.active) {
+            const dx = p.x - pointer.x;
+            const dy = p.y - pointer.y;
+            const distSq = dx * dx + dy * dy;
+            const radius = 115;
+            if (distSq < radius * radius) {
+              const dist = Math.sqrt(distSq) || 1;
+              const force = Math.pow(1 - dist / radius, 2) * 2.8;
+              p.vx +=
+                (dx / dist) * force +
+                (-dy / dist) * force * 0.35 +
+                pointer.vx * 0.04;
+              p.vy +=
+                (dy / dist) * force +
+                (dx / dist) * force * 0.35 +
+                pointer.vy * 0.04;
+            }
+          }
+
+          p.vx *= 0.84;
+          p.vy *= 0.84;
+          p.x += p.vx;
+          p.y += p.vy;
+
+          const diagDist = Math.abs(p.ox + p.oy - waveSweep);
+          const waveBoost = diagDist < 45 ? (1 - diagDist / 45) * 0.55 : 0;
+          const r = p.radius * (0.85 + 0.32 * scale + waveBoost);
+
           ctx.moveTo(p.x + r, p.y);
           ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
         }
+
+        ctx.globalAlpha = 0.72 + 0.22 * morphProgress;
         ctx.fill();
       }
 
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        if (!p.glow) continue;
-        const glowSize = 7.5 * Math.max(0.7, scale);
-        const alpha = 0.2 + 0.25 * (0.5 + 0.5 * Math.sin(time * 2 + p.phase));
-        ctx.globalAlpha = alpha;
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
-        grad.addColorStop(0, "#f2fbf1");
-        grad.addColorStop(0.3, "#86efac");
-        grad.addColorStop(1, "rgba(74, 222, 128, 0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, glowSize, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      animFrameId = requestAnimationFrame(render);
+    };
 
-      ctx.globalAlpha = 1;
-    }
-
-    let lastTime = 0;
-    function loop(now) {
-      if (!lastTime) lastTime = now;
-      const delta = Math.min(2.5, Math.max(0.2, (now - lastTime) / 16.667));
-      lastTime = now;
-      update(delta);
-      render();
-      animFrameId = requestAnimationFrame(loop);
-    }
-
-    window.addEventListener("resize", updateAnchorCenter);
-    updateAnchorCenter();
-    animFrameId = requestAnimationFrame(loop);
+    animFrameId = requestAnimationFrame(render);
 
     return () => {
       clearTimeout(timerId);
       if (animFrameId) cancelAnimationFrame(animFrameId);
-      window.removeEventListener("resize", updateAnchorCenter);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerleave", onPointerLeave);
-      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("resize", updateAnchorMetrics);
     };
   }, []);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100vw",
-        backgroundColor: "#060706",
-        color: "#ededed",
-        fontFamily:
-          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        overflowX: "hidden",
-        position: "relative",
-        WebkitFontSmoothing: "antialiased",
-      }}
-    >
-      {/* Fullscreen Particle Canvas */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          zIndex: 1,
-          pointerEvents: "auto",
-          display: "block",
-        }}
-      />
+    <div className="inab-astra-root">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-      {/* Top Minimalist Header with Integrated Navigation (INICIO & INAB) */}
-      <header
-        style={{
-          position: "relative",
-          zIndex: 10,
-          width: "100%",
-          maxWidth: "1280px",
-          margin: "0 auto",
-          padding: "28px 32px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          pointerEvents: "none",
-        }}
-      >
-        {/* Brand Left */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            pointerEvents: "auto",
-            cursor: "pointer",
-          }}
-          onClick={() => (window.location.href = "/home")}
-        >
-          <span
-            style={{
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              color: "#ffffff",
-              fontSize: "15px",
-            }}
-          >
+        html, body, #app {
+          margin: 0 !important;
+          padding: 0 !important;
+          padding-top: 0 !important;
+          width: 100%;
+          min-height: 100vh;
+          background-color: #060706 !important;
+          color: #ededed;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          overflow-x: hidden;
+        }
+
+        .inab-astra-root {
+          position: relative;
+          min-height: 100vh;
+          width: 100vw;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          background-color: #060706;
+          color: #ededed;
+          overflow: hidden;
+        }
+
+        .inab-particle-canvas {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          z-index: 1;
+          pointer-events: auto;
+          display: block;
+        }
+
+        .inab-ui-layer {
+          position: relative;
+          z-index: 10;
+          pointer-events: none;
+        }
+
+        .inab-interactive {
+          pointer-events: auto;
+        }
+
+        .inab-header {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 1.75rem 2.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.78rem;
+        }
+
+        .inab-brand-left {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          text-decoration: none;
+        }
+
+        .inab-brand-left:hover {
+          text-decoration: none;
+        }
+
+        .inab-btn-primary {
+          background-color: #ffffff;
+          color: #060706 !important;
+          font-weight: 600;
+          border: none;
+          border-radius: 9999px;
+          padding: 0.72rem 1.75rem;
+          font-size: 0.85rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6rem;
+          cursor: pointer;
+          text-decoration: none !important;
+          box-shadow: 0 0 30px rgba(158, 217, 153, 0.18);
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .inab-btn-primary:hover {
+          background-color: #dcfce7;
+          transform: translateY(-1px) scale(1.01);
+          box-shadow: 0 0 38px rgba(158, 217, 153, 0.35);
+          color: #060706 !important;
+        }
+
+        .inab-btn-ghost {
+          color: #d4d4d8 !important;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          background-color: rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(8px);
+          border-radius: 9999px;
+          padding: 0.52rem 1.15rem;
+          font-size: 0.76rem;
+          font-weight: 500;
+          cursor: pointer;
+          text-decoration: none !important;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .inab-btn-ghost:hover {
+          color: #ffffff !important;
+          border-color: rgba(158, 217, 153, 0.45);
+          background-color: rgba(114, 184, 121, 0.12);
+        }
+
+        .inab-hero-main {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem 1.5rem;
+          max-width: 1280px;
+          margin: 0 auto;
+          width: 100%;
+        }
+
+        .inab-hero-grid {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr minmax(280px, 460px) 1fr;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .inab-word-left {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          user-select: none;
+        }
+
+        .inab-word-right {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          user-select: none;
+        }
+
+        .inab-big-title {
+          font-size: clamp(3.5rem, 8vw, 7.5rem);
+          font-weight: 800;
+          letter-spacing: -0.05em;
+          color: #ffffff;
+          line-height: 1;
+          margin: 0;
+        }
+
+        .inab-logo-anchor {
+          width: 100%;
+          max-width: 460px;
+          height: 350px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .inab-footer {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 1.25rem 2.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          font-size: 0.72rem;
+          color: #71717a;
+        }
+
+        .inab-footer a {
+          color: #a1a1aa;
+          text-decoration: underline;
+          transition: color 0.15s ease;
+        }
+
+        .inab-footer a:hover {
+          color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+          .inab-header {
+            padding: 1.25rem 1.25rem;
+          }
+          .inab-hero-grid {
+            grid-template-columns: 1fr;
+            text-align: center;
+          }
+          .inab-word-left, .inab-word-right {
+            justify-content: center;
+          }
+          .inab-logo-anchor {
+            height: 260px;
+            order: -1;
+          }
+          .inab-footer {
+            padding: 1rem 1.25rem;
+            justify-content: center;
+            text-align: center;
+          }
+        }
+      `}</style>
+
+      {/* LIENZO DE PARTÍCULAS DE PANTALLA COMPLETA */}
+      <canvas ref={canvasRef} className="inab-particle-canvas" />
+
+      {/* BARRA SUPERIOR MINIMALISTA */}
+      <header className="inab-ui-layer inab-header">
+        <a href="/home" className="inab-interactive inab-brand-left">
+          <span style={{ fontWeight: 700, letterSpacing: "0.08em", color: "#ffffff", fontSize: "0.9rem" }}>
             INAB
           </span>
-          <span style={{ color: "#52525b" }}>/</span>
-          <span
-            style={{
-              color: "#a1a1aa",
-              letterSpacing: "0.06em",
-              fontWeight: 500,
-              fontSize: "14px",
-            }}
-          >
+          <span style={{ color: "rgba(114, 184, 121, 0.6)" }}>/</span>
+          <span style={{ color: "#a1a1aa", letterSpacing: "0.08em", fontWeight: 500 }}>
             SIG
           </span>
-        </div>
+        </a>
 
-        {/* Center Navigation Pills: INICIO and INAB */}
-        <nav
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "4px",
-            borderRadius: "9999px",
-            backgroundColor: "rgba(24, 24, 27, 0.7)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            backdropFilter: "blur(10px)",
-            pointerEvents: "auto",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => (window.location.href = "/home")}
-            style={{
-              padding: "6px 18px",
-              borderRadius: "9999px",
-              fontSize: "12px",
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              border: "none",
-              backgroundColor: "#ffffff",
-              color: "#060706",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            INICIO
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              (window.location.href = "/review-institution?institutionId=1")
-            }
-            style={{
-              padding: "6px 18px",
-              borderRadius: "9999px",
-              fontSize: "12px",
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              border: "none",
-              backgroundColor: "transparent",
-              color: "#d4d4d8",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.color = "#ffffff";
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.color = "#d4d4d8";
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            INAB
-          </button>
-
-          {!loggedOut && (
-            <button
-              type="button"
-              onClick={() =>
-                (window.location.href = `/account?accountId=${userId}`)
-              }
-              style={{
-                padding: "6px 16px",
-                borderRadius: "9999px",
-                fontSize: "12px",
-                fontWeight: 500,
-                letterSpacing: "0.04em",
-                border: "none",
-                backgroundColor: "transparent",
-                color: "#a1a1aa",
-                cursor: "pointer",
-              }}
-            >
-              CUENTA
-            </button>
-          )}
-        </nav>
-
-        {/* Right Auth Controls */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            pointerEvents: "auto",
-          }}
-        >
+        <div className="inab-interactive" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           {loggedOut ? (
-            <button
-              type="button"
-              onClick={() =>
-                (window.location.href =
-                  "/login?returnurl=" +
-                  encodeURIComponent("/review-institution?institutionId=1"))
-              }
-              style={{
-                padding: "8px 18px",
-                borderRadius: "9999px",
-                fontSize: "12px",
-                fontWeight: 500,
-                backgroundColor: "#ffffff",
-                color: "#060706",
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-            >
+            <button type="button" onClick={handleEnterPortal} className="inab-btn-ghost">
               Iniciar Sesión
             </button>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <span style={{ fontSize: "12px", color: "#a1a1aa" }}>
-                {userName}
-              </span>
-              <button
-                type="button"
-                onClick={handleLogout}
-                style={{
-                  padding: "7px 15px",
-                  borderRadius: "9999px",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  backgroundColor: "rgba(255, 255, 255, 0.06)",
-                  color: "#e4e4e7",
-                  border: "1px solid rgba(255, 255, 255, 0.14)",
-                  cursor: "pointer",
-                }}
-              >
+            <>
+              <span style={{ color: "#a1a1aa", fontSize: "0.75rem" }}>{userName}</span>
+              <button type="button" onClick={handleLogout} className="inab-btn-ghost">
                 Cerrar Sesión
               </button>
-            </div>
+            </>
           )}
         </div>
       </header>
 
-      {/* Main Hero Section: INAB (left) | Center Particle Logo | SIG (right) */}
-      <main
-        style={{
-          position: "relative",
-          zIndex: 10,
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "16px 24px",
-          maxWidth: "1280px",
-          width: "100%",
-          margin: "0 auto",
-          pointerEvents: "none",
-        }}
-      >
-        {/* Flanked Row */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "16px",
-          }}
-        >
-          {/* Left: ONLY INAB */}
-          <div
-            style={{
-              flex: "1 1 200px",
-              display: "flex",
-              justifyContent: "flex-end",
-              userSelect: "none",
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "clamp(3.8rem, 8vw, 7.5rem)",
-                fontWeight: 700,
-                letterSpacing: "-0.05em",
-                color: "#ffffff",
-                lineHeight: 1,
-                margin: 0,
-              }}
-            >
-              INAB
-            </h1>
+      {/* CENTRO HERO: INAB (izquierda) | Logo Dinámico (centro) | SIG (derecha) */}
+      <main className="inab-ui-layer inab-hero-main">
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "auto 0" }}>
+          <div className="inab-hero-grid">
+            <div className="inab-word-left">
+              <h1 className="inab-big-title">INAB</h1>
+            </div>
+
+            <div>
+              <div ref={anchorRef} className="inab-logo-anchor" />
+            </div>
+
+            <div className="inab-word-right">
+              <h1 className="inab-big-title">SIG</h1>
+            </div>
           </div>
 
-          {/* Center Optical Anchor for Assembled Logo */}
-          <div
-            ref={anchorRef}
-            style={{
-              flex: "0 1 460px",
-              width: "100%",
-              maxWidth: "460px",
-              height: "340px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          />
+          {/* Botón único de acceso directo */}
+          <div className="inab-interactive" style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.15rem" }}>
+            <p style={{ fontSize: "0.84rem", color: "#a1a1aa", fontWeight: 400, letterSpacing: "0.03em", margin: 0, textAlign: "center" }}>
+              Sistema de Información Geográfica y Validación Forestal
+            </p>
 
-          {/* Right: ONLY SIG */}
-          <div
-            style={{
-              flex: "1 1 200px",
-              display: "flex",
-              justifyContent: "flex-start",
-              userSelect: "none",
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "clamp(3.8rem, 8vw, 7.5rem)",
-                fontWeight: 700,
-                letterSpacing: "-0.05em",
-                color: "#ffffff",
-                lineHeight: 1,
-                margin: 0,
-              }}
-            >
-              SIG
-            </h1>
-          </div>
-        </div>
-
-        {/* Subtitle & Controls */}
-        <div
-          style={{
-            marginTop: "28px",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "20px",
-            pointerEvents: "auto",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "15px",
-              color: "#a1a1aa",
-              margin: 0,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Sistema de Información Geográfica y Validación Forestal
-          </p>
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "12px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() =>
-                (window.location.href = "/review-institution?institutionId=1")
-              }
-              style={{
-                padding: "12px 28px",
-                borderRadius: "9999px",
-                fontSize: "13px",
-                fontWeight: 600,
-                backgroundColor: "#ffffff",
-                color: "#060706",
-                border: "none",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                transition: "transform 0.15s ease, background-color 0.15s ease",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#e4e4e7";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
+            <button type="button" onClick={handleEnterPortal} className="inab-btn-primary">
               <span>Entrar a INAB · SIG</span>
-              <span style={{ fontSize: "15px", lineHeight: 1 }}>→</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => controlsRef.current.disperse()}
-              style={{
-                padding: "12px 20px",
-                borderRadius: "9999px",
-                fontSize: "12px",
-                fontWeight: 400,
-                backgroundColor: "rgba(0, 0, 0, 0.45)",
-                color: "#a1a1aa",
-                border: "1px solid rgba(255, 255, 255, 0.14)",
-                backdropFilter: "blur(8px)",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.color = "#ffffff";
-                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.35)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.color = "#a1a1aa";
-                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
-              }}
-            >
-              Dispersar en estrellas
-            </button>
-
-            <button
-              type="button"
-              onClick={() => controlsRef.current.assemble()}
-              style={{
-                padding: "12px 20px",
-                borderRadius: "9999px",
-                fontSize: "12px",
-                fontWeight: 400,
-                backgroundColor: "rgba(0, 0, 0, 0.45)",
-                color: "#a1a1aa",
-                border: "1px solid rgba(255, 255, 255, 0.14)",
-                backdropFilter: "blur(8px)",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.color = "#ffffff";
-                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.35)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.color = "#a1a1aa";
-                e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
-              }}
-            >
-              Ensamblar logo
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </button>
           </div>
         </div>
       </main>
 
-      {/* Minimal Editorial Footer */}
-      <footer
-        style={{
-          position: "relative",
-          zIndex: 10,
-          width: "100%",
-          maxWidth: "1280px",
-          margin: "0 auto",
-          padding: "24px 32px",
-          borderTop: "1px solid rgba(255, 255, 255, 0.06)",
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "12px",
-          fontSize: "12px",
-          color: "#71717a",
-          pointerEvents: "auto",
-        }}
-      >
+      {/* PIE DE PÁGINA CON ATRIBUCIÓN OPEN SOURCE Y AUTOR */}
+      <footer className="inab-ui-layer inab-footer">
         <div>
           <span>Instituto Nacional de Bosques (INAB) · Guatemala</span>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: "10px",
-            fontSize: "11px",
-          }}
-        >
+        <div className="inab-interactive" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "0.45rem" }}>
           <span>Basado en el código abierto de</span>
-          <a
-            href="https://collect.earth"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#a1a1aa", textDecoration: "underline" }}
-          >
+          <a href="https://collect.earth" target="_blank" rel="noopener noreferrer">
             Collect Earth Online
           </a>
-          <span style={{ color: "#3f3f46" }}>y</span>
-          <a
-            href="https://github.com/openforis/collect-earth-online"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#a1a1aa", textDecoration: "underline" }}
-          >
+          <span>y</span>
+          <a href="https://github.com/openforis/collect-earth-online" target="_blank" rel="noopener noreferrer">
             Open Foris
           </a>
           <span style={{ color: "#3f3f46" }}>·</span>
-          <span style={{ color: "#d4d4d8", fontWeight: 500 }}>
-            Updated by Marlon R. Vásquez
-          </span>
+          <span style={{ color: "#e4e4e7", fontWeight: 500 }}>Updated by Marlon R. Vásquez</span>
         </div>
       </footer>
     </div>
@@ -749,9 +583,8 @@ function Home({ userId, userName }) {
 export function pageInit(params, session) {
   ReactDOM.render(
     <Home
-      userId={session.userId}
-      userName={session.userName}
-      version={session.versionDeployed}
+      userId={session.userId || -1}
+      userName={session.userName || "guest"}
     />,
     document.getElementById("app")
   );

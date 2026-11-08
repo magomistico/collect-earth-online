@@ -313,26 +313,34 @@ export function NavTopBar ({version, userName, userId, children}) {
         />
       )}
       <nav
-        className="navbar navbar-expand-lg navbar-light fixed-top py-0"
+        className="navbar navbar-expand-lg navbar-dark fixed-top py-1"
         id="main-nav"
         ref={navRef}
-        style={{ backgroundColor: "white", borderBottom: "1px solid black" }}
+        style={{
+          backgroundColor: "rgba(7, 10, 8, 0.92)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(114, 184, 121, 0.2)",
+        }}
       >
         <a className="navbar-brand pt-1 pb-1" href="/home" style={{ textDecoration: "none" }}>
           <div className="d-flex align-items-center">
             <img
               alt="INAB · SIG"
               id="ceo-site-logo"
-              src="/img/inab-logo.svg"
-              style={{ maxHeight: "50px", width: "auto" }}
+              src="https://manejoforestal.inab.gob.gt/img/inab.png"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/img/inab-logo.svg";
+              }}
+              style={{ maxHeight: "46px", width: "auto", objectFit: "contain" }}
             />
             <div className="d-flex flex-column ml-2 text-left" style={{ lineHeight: 1.1 }}>
               <div className="d-flex align-items-baseline">
-                <span style={{ fontWeight: 800, fontSize: "1.2rem", color: "#165337", letterSpacing: "0.04em" }}>INAB</span>
-                <span style={{ margin: "0 6px", color: "#7a9b80", fontWeight: 300 }}>|</span>
-                <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "#2d7a52", letterSpacing: "0.06em" }}>SIG</span>
+                <span style={{ fontWeight: 800, fontSize: "1.15rem", color: "#ffffff", letterSpacing: "0.04em" }}>INAB</span>
+                <span style={{ margin: "0 6px", color: "#72b879", fontWeight: 400 }}>·</span>
+                <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#72b879", letterSpacing: "0.06em" }}>SIG</span>
               </div>
-              <span style={{ fontSize: "0.68rem", color: "#546e5a", letterSpacing: "0.03em" }}>
+              <span style={{ fontSize: "0.68rem", color: "#a1a1aa", letterSpacing: "0.03em" }}>
                 Validación Forestal
               </span>
             </div>
@@ -350,46 +358,47 @@ export function NavTopBar ({version, userName, userId, children}) {
           <span className="navbar-toggler-icon" />
         </button>
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul className="navbar-nav mr-auto">
+          <ul className="navbar-nav mr-auto ml-3">
             {[
               { page: "INICIO", link: "/home", match: "/home" },
-              { page: "INAB", link: "/review-institution?institutionId=1", match: "/review-institution" },
+              { page: "Portal INAB · SIG", link: "/review-institution?institutionId=1", match: "/review-institution" },
             ].map(({ page, link, match }) => (
               <li
                 key={page}
-                className={"nav-item" + (uri === match ? " active" : "")}
+                className={"nav-item mr-1" + (uri === match ? " active" : "")}
               >
-                <a className="nav-link" href={link} style={{ fontWeight: 600 }}>
+                <a
+                  className="nav-link"
+                  href={link}
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "0.82rem",
+                    color: uri === match ? "#9ed999" : "#d4d4d8",
+                    background: uri === match ? "rgba(114, 184, 121, 0.16)" : "transparent",
+                    border: uri === match ? "1px solid rgba(114, 184, 121, 0.32)" : "1px solid transparent",
+                    borderRadius: "10px",
+                    padding: "6px 14px",
+                  }}
+                >
                   {page}
                 </a>
               </li>
             ))}
             {!loggedOut && (
               <li className={"nav-item" + (uri === "/account" ? " active" : "")}>
-                <a className="nav-link" href={"/account?accountId=" + userId}>
+                <a
+                  className="nav-link"
+                  href={"/account?accountId=" + userId}
+                  style={{ fontWeight: 500, fontSize: "0.82rem", color: "#a1a1aa", padding: "6px 12px" }}
+                >
                   Cuenta
                 </a>
               </li>
             )}
           </ul>
-          <ul className="navbar-nav mr-0" id="login-info">
+          <ul className="navbar-nav mr-0 align-items-center" id="login-info">
             <LogOutButton uri={uri} userName={userName} />
           </ul>
-          <div className="ml-3" onClick={() => toggleHelpMenu(true)}>
-            {helpSlides.length > 0 && (
-              <div
-                className="tooltip_wrapper"
-                style={{
-                  animation: "glow 2s 6 alternate",
-                  animationDelay: "1s",
-                  borderRadius: "2rem",
-                }}
-              >
-                <SvgIcon color="purple" cursor="pointer" icon="help" size="2rem" />
-                <span className="tooltip_content">Ayuda</span>
-              </div>
-            )}
-          </div>
         </div>          
       </nav>
       {children}

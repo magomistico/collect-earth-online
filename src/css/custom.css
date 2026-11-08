@@ -1353,14 +1353,14 @@ body {
 /* Breadcrumb Bar */
 #breadcrumb-bar {
     display: flex;
-    height: 56px;
-    padding: 16px;
+    height: 48px;
+    padding: 12px 16px;
     align-items: center;
-    background: var(--Neutral-White, #FFF);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: #080c09;
+    border-bottom: 1px solid rgba(114, 184, 121, 0.16);
+    color: #d4d4d8;
     position: fixed;
     top: var(--navbar-height);
-    /* left: 100px; */
     width: 100%;
     z-index: 90;
     box-sizing: border-box;
@@ -1369,10 +1369,12 @@ body {
 #breadcrumb-bar .crumb {
     padding: .5vw;
     cursor: pointer;
+    color: #a1a1aa;
 }
 
 #breadcrumb-bar :last-child {
-    font-weight: bold;
+    font-weight: 700;
+    color: #9ed999;
 }
 
 #stats-card .stat {
@@ -1383,7 +1385,6 @@ body {
     display: flex;
     justify-content: space-between;
     margin: auto 2%;
-    
 }
 
 .stats-header{
@@ -1392,6 +1393,7 @@ body {
 
 .projects-legend {
     display: inline-flex;
+    color: #d4d4d8;
 }
 
 .projects-legend div {
@@ -1402,31 +1404,40 @@ body {
 #projects-tab {
     margin-left: 18vw;
     padding: 2rem;
+    color: #e4e4e7;
 }
 
 #projects-tab .projects-count {
     display: flex;
     justify-content: space-between;
-    alignItems: center;
+    align-items: center;
     margin-bottom: 1rem;
 }
 
 #projects-tab .projects-count h2 {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #2f615e;
+    color: #ffffff;
 }
 
 #projects-tab .projects-count #new-project-button {
-    background: #2f615e;
+    background: linear-gradient(135deg, #4d9860 0%, #2f6c40 100%);
     color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    border: 1px solid rgba(158, 217, 153, 0.35);
+    padding: 9px 18px;
+    border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 6px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#projects-tab .projects-count #new-project-button:hover {
+    background: linear-gradient(135deg, #5eae72 0%, #387e4b 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(77, 152, 96, 0.3);
 }
 
 #projects-tab .projects-filter {
@@ -1438,15 +1449,22 @@ body {
 
 #projects-tab .projects-filter input {
     flex: 1;
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(10, 15, 11, 0.85);
+    color: #ffffff;
 }
 
 .projects-table-name {
-    color: #2f615e;
+    color: #9ed999;
     text-decoration: none;
     font-weight: 600;
+}
+
+.projects-table-name:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 .info-tooltip {
@@ -1484,11 +1502,11 @@ body {
   min-width: 14rem;
   max-width: 20rem;
   padding: 0.75rem 0.875rem;
-  background: #fff;
-  color: #1f2933;
-  border: 1px solid #d9dee3;
-  border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  background: #0d130f;
+  color: #e4e4e7;
+  border: 1px solid rgba(114, 184, 121, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
   font-size: 0.875rem;
   line-height: 1.45;
   text-align: left;
@@ -1506,14 +1524,69 @@ body {
 .info-tooltip__title {
   font-weight: 600;
   margin-bottom: 0.35rem;
+  color: #9ed999;
 }
 
 .info-tooltip__text {
-  color: #3e4c59;
+  color: #d4d4d8;
   font-weight: 400;  
 }
 
 .info-tooltip__text a {
-  color: #2d6f74;
+  color: #72b879;
   font-weight: 500;
 }
+
+/* ===================================================================== */
+/* GLOBAL DARK ASTRA THEME OVERRIDES FOR INAB · SIG PORTAL & FORM WIZARD */
+/* ===================================================================== */
+html, body {
+  background-color: #060706 !important;
+  color: #e4e4e7 !important;
+}
+
+.card, .wizard-card, .wizard-sidebar .card, .modal-content {
+  background-color: #0b110d !important;
+  border: 1px solid rgba(114, 184, 121, 0.22) !important;
+  color: #e4e4e7 !important;
+  border-radius: 12px !important;
+}
+
+.card-header, .modal-header {
+  background-color: rgba(114, 184, 121, 0.14) !important;
+  border-bottom: 1px solid rgba(114, 184, 121, 0.22) !important;
+  color: #ffffff !important;
+}
+
+.form-control, select.form-control, textarea.form-control {
+  background-color: rgba(6, 8, 7, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+}
+
+.form-control:focus {
+  border-color: #72b879 !important;
+  box-shadow: 0 0 0 3px rgba(114, 184, 121, 0.2) !important;
+}
+
+table, .table {
+  color: #e4e4e7 !important;
+}
+
+.rt-table, .ReactTable {
+  background: rgba(11, 17, 13, 0.85) !important;
+  border: 1px solid rgba(114, 184, 121, 0.18) !important;
+  border-radius: 12px !important;
+  color: #e4e4e7 !important;
+}
+
+.ReactTable .rt-thead {
+  background: rgba(114, 184, 121, 0.1) !important;
+  color: #9ed999 !important;
+}
+
+.ReactTable .rt-tr-group {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
