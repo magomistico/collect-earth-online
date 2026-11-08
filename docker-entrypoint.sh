@@ -47,8 +47,7 @@ if [ "$TABLE_COUNT" = "0" ] || [ -z "$TABLE_COUNT" ]; then
     clojure -M:build-db build-all --dev-data
     echo "[INFO] Base de datos de INAB-SIG inicializada con éxito."
 else
-    echo "[INFO] Base de datos existente detectada. Sincronizando funciones..."
-    clojure -M:build-db functions -d "$DB_NAME" || true
+    echo "[INFO] Base de datos existente detectada. Esquema listo para producción."
 fi
 
 # 4. Iniciar servidor Ring/Triangulum
