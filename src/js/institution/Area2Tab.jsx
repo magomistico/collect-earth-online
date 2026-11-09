@@ -701,83 +701,104 @@ export const Area2Tab = ({ institutionId, isAdmin }) => {
             </div>
 
             {/* AVISO DE AUTENTICACIÓN / ERROR GEE */}
-            {geeError && (
-              <div
-                style={{
-                  background: "rgba(220, 38, 38, 0.08)",
-                  border: "1px solid rgba(239, 68, 68, 0.35)",
-                  borderRadius: "12px",
-                  padding: "16px 18px",
-                  marginBottom: "16px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "1.1rem" }}>⚠️</span>
-                  <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "#f87171" }}>
-                    Google Earth Engine: Autenticación Requerida en el Servidor
-                  </h4>
-                </div>
-                <p style={{ fontSize: "0.84rem", color: "#e4e4e7", lineHeight: 1.5, margin: "0 0 10px 0" }}>
-                  El asset <strong style={{ color: "#34d399" }}>{imageId}</strong> no pudo ser cargado directamente desde GEE porque la librería de Earth Engine requiere autenticarse una sola vez en el servidor remoto:
-                </p>
+            {geeError && (() => {
+              const isAccessError = geeError.toLowerCase().includes("not found") || geeError.toLowerCase().includes("access") || geeError.toLowerCase().includes("permission");
+              return (
                 <div
                   style={{
-                    background: "#050805",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    borderRadius: "8px",
-                    padding: "10px 14px",
-                    fontFamily: "monospace",
-                    fontSize: "0.82rem",
-                    color: "#34d399",
-                    marginBottom: "10px",
-                    wordBreak: "break-all",
-                    userSelect: "all",
+                    background: isAccessError ? "rgba(245, 158, 11, 0.08)" : "rgba(220, 38, 38, 0.08)",
+                    border: `1px solid ${isAccessError ? "rgba(245, 158, 11, 0.35)" : "rgba(239, 68, 68, 0.35)"}`,
+                    borderRadius: "12px",
+                    padding: "16px 18px",
+                    marginBottom: "16px",
                   }}
                 >
-                  sudo docker compose exec app earthengine authenticate
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "1.1rem" }}>{isAccessError ? "🔒" : "⚠️"}</span>
+                    <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: isAccessError ? "#fbbf24" : "#f87171" }}>
+                      {isAccessError
+                        ? "Google Earth Engine: Permiso de Lectura Requerido en el Asset"
+                        : "Google Earth Engine: Autenticación Requerida en el Servidor"}
+                    </h4>
+                  </div>
+                  {isAccessError ? (
+                    <div>
+                      <p style={{ fontSize: "0.84rem", color: "#e4e4e7", lineHeight: 1.5, margin: "0 0 10px 0" }}>
+                        El servidor ya está conectado con GEE, pero el asset <strong style={{ color: "#34d399" }}>{imageId}</strong> es privado en tu cuenta. Para habilitar la lectura pública:
+                      </p>
+                      <ol style={{ fontSize: "0.80rem", color: "#d1d5db", margin: "0 0 12px 18px", lineHeight: 1.6 }}>
+                        <li>Abre tu asset en Google Earth Engine Code Editor.</li>
+                        <li>Haz clic en el botón <strong>SHARE</strong> (Compartir) en la esquina superior derecha del detalle del asset.</li>
+                        <li>Marca la casilla <strong>"Anyone can read"</strong> (Cualquiera puede leer) y presiona <strong>Save</strong>.</li>
+                      </ol>
+                    </div>
+                  ) : (
+                    <div>
+                      <p style={{ fontSize: "0.84rem", color: "#e4e4e7", lineHeight: 1.5, margin: "0 0 10px 0" }}>
+                        El asset <strong style={{ color: "#34d399" }}>{imageId}</strong> no pudo ser cargado directamente desde GEE porque la librería de Earth Engine requiere autenticarse una sola vez en el servidor remoto:
+                      </p>
+                      <div
+                        style={{
+                          background: "#050805",
+                          border: "1px solid rgba(255, 255, 255, 0.12)",
+                          borderRadius: "8px",
+                          padding: "10px 14px",
+                          fontFamily: "monospace",
+                          fontSize: "0.82rem",
+                          color: "#34d399",
+                          marginBottom: "10px",
+                          wordBreak: "break-all",
+                          userSelect: "all",
+                        }}
+                      >
+                        sudo docker compose exec -it app earthengine authenticate --auth_mode=notebook
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ fontSize: "0.76rem", color: "#a1a1aa", marginBottom: "12px" }}>
+                    <strong>Detalle devuelto por GEE:</strong> {geeError}
+                  </div>
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGeeError(null);
+                        setShowStrataConfigModal(true);
+                        setPanelStep("method_select");
+                      }}
+                      style={{
+                        background: "rgba(16, 185, 129, 0.15)",
+                        border: "1px solid #10b981",
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        fontSize: "0.80rem",
+                        fontWeight: 700,
+                        color: "#34d399",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ⚙️ Configurar Estratos Manualmente para este Asset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGeeError(null)}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        fontSize: "0.80rem",
+                        color: "#e4e4e7",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cerrar Aviso
+                    </button>
+                  </div>
                 </div>
-                <div style={{ fontSize: "0.76rem", color: "#a1a1aa", marginBottom: "12px" }}>
-                  <strong>Detalle devuelto por GEE:</strong> {geeError}
-                </div>
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGeeError(null);
-                      setShowStrataConfigModal(true);
-                      setPanelStep("method_select");
-                    }}
-                    style={{
-                      background: "rgba(16, 185, 129, 0.15)",
-                      border: "1px solid #10b981",
-                      borderRadius: "6px",
-                      padding: "6px 12px",
-                      fontSize: "0.80rem",
-                      fontWeight: 700,
-                      color: "#34d399",
-                      cursor: "pointer",
-                    }}
-                  >
-                    ⚙️ Configurar Estratos Manualmente para este Asset
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setGeeError(null)}
-                    style={{
-                      background: "transparent",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      borderRadius: "6px",
-                      padding: "6px 12px",
-                      fontSize: "0.80rem",
-                      color: "#e4e4e7",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cerrar Aviso
-                  </button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
+
 
             {/* 1. INTRO PANEL */}
             {panelStep === "intro" && (
