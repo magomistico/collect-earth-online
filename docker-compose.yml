@@ -49,7 +49,8 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      DOMAIN: ${DOMAIN:-inab-sig.159.54.156.211.sslip.io}
+      DOMAIN: ${DOMAIN:-inab-sig.duckdns.org}
+
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - inab_caddy_data:/data

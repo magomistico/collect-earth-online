@@ -2,7 +2,8 @@
     email admin@inab.gob.gt
 }
 
-# Dominio público permanente con HTTPS / SSL automático
-{$DOMAIN:inab-sig.159.54.156.211.sslip.io} {
+# Dominio corto DuckDNS y dominio de respaldo sslip.io con HTTPS automático
+inab-sig.duckdns.org, inab-sig.159.54.156.211.sslip.io, {$DOMAIN:inab-sig.duckdns.org} {
     reverse_proxy app:8080
 }
+
