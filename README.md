@@ -1,4 +1,4 @@
-# 🌲 INAB · SIG - Plataforma de Validación Forestal
+# INAB · SIG - Plataforma de Validación Forestal
 
 > Sistema de Información Geográfica del **Instituto Nacional de Bosques (INAB) de Guatemala** para la interpretación visual, fotointerpretación y validación espacial de cobertura forestal y uso de la tierra sobre imágenes satelitales de alta resolución.
 
@@ -10,7 +10,7 @@
 
 ---
 
-## ✨ Características Principales
+## Características Principales
 
 - **Identidad INAB-SIG:** Portada institucional con emblema interactivo y navegación adaptada para la gestión forestal guatemalteca.
 - **Centrado Espacial en Guatemala:** Mapas base, visores y proyectos configurados por defecto sobre el territorio nacional (`-90.25, 15.78`).
@@ -21,7 +21,7 @@
 
 ---
 
-## 🚀 Inicio Rápido (Docker)
+## Inicio Rápido (Docker)
 
 ```bash
 # Clonar el repositorio
@@ -32,18 +32,7 @@ cd collect-earth-online
 docker compose up --build -d
 ```
 
-Abre en tu navegador:
-👉 **[http://localhost:8080](http://localhost:8080)**
-
 Para más detalles sobre credenciales, configuración de capas WMS y conexión con QGIS, consulta la **[Guía Completa de Despliegue (DESPLIEGUE.md)](DESPLIEGUE.md)**.
-
----
-
-## 👥 Credenciales de Prueba
-
-- **Administrador:** `admin@inab.gob.gt` / `password123`
-- **Técnico Validador:** `tecnico@inab.gob.gt` / `password123`
-- **Técnico SIG:** `sig@inab.gob.gt` / `password123`
 
 ---
 
