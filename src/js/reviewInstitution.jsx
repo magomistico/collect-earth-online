@@ -438,7 +438,7 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
         )}
         {state.modalMessage && <LoadingModal message={state.modalMessage} />}
       </div>
-      <InstitutionDescription />
+      {state.selectedTab !== "area2" && <InstitutionDescription />}
       {(state.selectedTab === "projects" || state.selectedTab === "imagery") && (
         <ProjectsTab
           institutionId={institutionId}
