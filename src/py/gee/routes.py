@@ -251,3 +251,72 @@ def dynamicWorld(requestDict):
 def statistics(requestDict):
     values = getStatistics(getDefault(requestDict, 'extent', None))    
     return {url: values}
+
+
+# ########## AREA2 Stratification ##########
+
+def area2Stratification(requestDict):
+    asset_id = getDefault(requestDict, 'assetId', 'projects/AREA2/public/guatemala_stratification')
+    band_id = int(getDefault(requestDict, 'band', 1)) - 1
+    mask_val = float(getDefault(requestDict, 'maskVal', 0))
+    scale = float(getDefault(requestDict, 'scale', 30))
+    palette = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99',
+               '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928']
+    try:
+        import ee
+        img = ee.Image(asset_id)
+        try:
+            img = img.select([band_id])
+        except Exception:
+            img = img.select([0])
+
+        img = img.rename('classification').toInt()
+        img = img.updateMask(img.neq(mask_val))
+
+        geometry = img.geometry()
+        bounds_info = geometry.bounds().coordinates().getInfo()[0]
+        lons = [p[0] for p in bounds_info]
+        lats = [p[1] for p in bounds_info]
+        min_lon, max_lon = min(lons), max(lons)
+        min_lat, max_lat = min(lats), max(lats)
+        center = [(min_lon + max_lon) / 2.0, (min_lat + max_lat) / 2.0]
+
+        map_id = img.getMapId({'min': 0, 'max': 12, 'palette': palette})
+        tile_url = map_id['tile_fetcher'].url_format
+
+        pixel_area = ee.Image.pixelArea().addBands(img)
+        reduced = pixel_area.reduceRegion(
+            reducer=ee.Reducer.sum().group(1),
+            geometry=geometry,
+            scale=scale,
+            maxPixels=1e13
+        ).getInfo()
+
+        groups = reduced.get('groups', [])
+        strata_list = []
+        strata_areas = []
+        total_area = 0.0
+        for g in groups:
+            strata_list.append(int(g.get('group', 0)))
+            s_val = float(g.get('sum', 0.0))
+            strata_areas.append(s_val)
+            total_area += s_val
+
+        area_weights = [a / total_area for a in strata_areas] if total_area > 0 else []
+
+        return {
+            'success': True,
+            'tileUrl': tile_url,
+            'center': center,
+            'bounds': [min_lon, min_lat, max_lon, max_lat],
+            'strataList': strata_list,
+            'strataAreas': strata_areas,
+            'areaWeights': area_weights,
+            'totalArea': total_area
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'errMsg': str(e)
+        }
+

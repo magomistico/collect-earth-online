@@ -80,7 +80,8 @@
     "imageCollectionByIndex"
     "statistics"
     "timeSeriesByIndex"
-    "dynamicWorld"})
+    "dynamicWorld"
+    "area2Stratification"})
 
 (defn gateway-request [{:keys [params json-params]}]
   (check-initialized)
