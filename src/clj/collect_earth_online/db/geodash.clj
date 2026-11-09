@@ -81,7 +81,9 @@
     "statistics"
     "timeSeriesByIndex"
     "dynamicWorld"
-    "area2Stratification"})
+    "area2Stratification"
+    "area2StratifiedSample"})
+
 
 (defn gateway-request [{:keys [params json-params]}]
   (check-initialized)

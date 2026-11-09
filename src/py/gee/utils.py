@@ -11,15 +11,37 @@ from gee.inputs import getLandsat, getS1, getLandsatToa, getTFO, getSentinel2Toa
 ########## Helper functions ##########
 
 
-def initialize(ee_account='', ee_key_path=''):
+def initialize(ee_account='', ee_key_path='', project=None):
     try:
-        if ee_account and ee_key_path and os.path.exists(ee_key_path):
-            credentials = ee.ServiceAccountCredentials(ee_account, ee_key_path)
-            ee.Initialize(credentials)
-        else:
-            ee.Initialize()
+        sa_key = ee_key_path or os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '')
+        if not sa_key and os.path.exists('/app/ee-key.json'):
+            sa_key = '/app/ee-key.json'
+
+        if sa_key and os.path.exists(sa_key):
+            try:
+                if ee_account:
+                    credentials = ee.ServiceAccountCredentials(ee_account, sa_key)
+                else:
+                    credentials = ee.ServiceAccountCredentials.from_json_file(sa_key)
+                if project:
+                    ee.Initialize(credentials, project=project)
+                else:
+                    ee.Initialize(credentials)
+                print(f"[INFO] GEE Inicializado con Service Account ({sa_key})")
+                return True
+            except Exception as sa_err:
+                print(f"[WARN] Error inicializando SA {sa_key}: {sa_err}")
+
+        kwargs = {}
+        if project:
+            kwargs['project'] = project
+        ee.Initialize(**kwargs)
+        print(f"[INFO] GEE Inicializado exitosamente (project={project or 'default'})")
+        return True
     except Exception as e:
-        print(e)
+        print(f"[WARN] Error en ee.Initialize: {e}")
+        return False
+
 
 
 def getReducer(reducer):

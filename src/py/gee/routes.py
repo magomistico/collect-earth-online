@@ -253,7 +253,7 @@ def statistics(requestDict):
     return {url: values}
 
 
-# ########## AREA2 Stratification ##########
+# ########## AREA2 Stratification & Sampling ##########
 
 def area2Stratification(requestDict):
     asset_id = getDefault(requestDict, 'assetId', 'projects/AREA2/public/guatemala_stratification')
@@ -264,6 +264,17 @@ def area2Stratification(requestDict):
                '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928']
     try:
         import ee
+        project = None
+        if asset_id.startswith('projects/'):
+            parts = asset_id.split('/')
+            if len(parts) >= 2:
+                project = parts[1]
+
+        try:
+            ee.data.getAlgorithms()
+        except Exception:
+            initialize(project=project)
+
         img = ee.Image(asset_id)
         try:
             img = img.select([band_id])
@@ -274,12 +285,17 @@ def area2Stratification(requestDict):
         img = img.updateMask(img.neq(mask_val))
 
         geometry = img.geometry()
-        bounds_info = geometry.bounds().coordinates().getInfo()[0]
-        lons = [p[0] for p in bounds_info]
-        lats = [p[1] for p in bounds_info]
-        min_lon, max_lon = min(lons), max(lons)
-        min_lat, max_lat = min(lats), max(lats)
-        center = [(min_lon + max_lon) / 2.0, (min_lat + max_lat) / 2.0]
+        try:
+            bounds_info = geometry.bounds().coordinates().getInfo()[0]
+            lons = [p[0] for p in bounds_info]
+            lats = [p[1] for p in bounds_info]
+            min_lon, max_lon = min(lons), max(lons)
+            min_lat, max_lat = min(lats), max(lats)
+            center = [(min_lon + max_lon) / 2.0, (min_lat + max_lat) / 2.0]
+            bounds = [min_lon, min_lat, max_lon, max_lat]
+        except Exception:
+            center = [-90.2308, 15.7835]
+            bounds = [-92.25, 13.73, -88.22, 17.82]
 
         map_id = img.getMapId({'min': 0, 'max': 12, 'palette': palette})
         tile_url = map_id['tile_fetcher'].url_format
@@ -289,7 +305,9 @@ def area2Stratification(requestDict):
             reducer=ee.Reducer.sum().group(1),
             geometry=geometry,
             scale=scale,
-            maxPixels=1e13
+            maxPixels=1e13,
+            bestEffort=True,
+            tileScale=4
         ).getInfo()
 
         groups = reduced.get('groups', [])
@@ -308,15 +326,97 @@ def area2Stratification(requestDict):
             'success': True,
             'tileUrl': tile_url,
             'center': center,
-            'bounds': [min_lon, min_lat, max_lon, max_lat],
+            'bounds': bounds,
             'strataList': strata_list,
             'strataAreas': strata_areas,
             'areaWeights': area_weights,
             'totalArea': total_area
         }
     except Exception as e:
+        err_msg = str(e)
+        err_type = "UNKNOWN"
+        if "not initialized" in err_msg.lower():
+            err_type = "EE_AUTH_REQUIRED"
+        elif "asset" in err_msg.lower() and "not found" in err_msg.lower():
+            err_type = "ASSET_NOT_FOUND"
+        elif "permission" in err_msg.lower() or "denied" in err_msg.lower():
+            err_type = "PERMISSION_DENIED"
+
+        return {
+            'success': False,
+            'errType': err_type,
+            'errMsg': err_msg
+        }
+
+
+def area2StratifiedSample(requestDict):
+    asset_id = getDefault(requestDict, 'assetId', 'projects/AREA2/public/guatemala_stratification')
+    band_id = int(getDefault(requestDict, 'band', 1)) - 1
+    mask_val = float(getDefault(requestDict, 'maskVal', 0))
+    scale = float(getDefault(requestDict, 'scale', 30))
+    class_values = requestDict.get('classValues', [])
+    class_points = requestDict.get('classPoints', [])
+
+    try:
+        import ee
+        project = None
+        if asset_id.startswith('projects/'):
+            parts = asset_id.split('/')
+            if len(parts) >= 2:
+                project = parts[1]
+
+        try:
+            ee.data.getAlgorithms()
+        except Exception:
+            initialize(project=project)
+
+        img = ee.Image(asset_id)
+        try:
+            img = img.select([band_id])
+        except Exception:
+            img = img.select([0])
+
+        img = img.rename('classification').toInt()
+        img = img.updateMask(img.neq(mask_val))
+        geometry = img.geometry()
+
+        c_vals = [int(v) for v in class_values]
+        c_pts = [int(p) for p in class_points]
+
+        sample_fc = img.stratifiedSample(
+            numPoints=0,
+            classBand='classification',
+            region=geometry,
+            scale=scale,
+            classValues=c_vals,
+            classPoints=c_pts,
+            geometries=True
+        )
+
+        geojson = sample_fc.getInfo()
+        features = geojson.get('features', [])
+        points = []
+        for idx, f in enumerate(features):
+            geom = f.get('geometry', {})
+            coords = geom.get('coordinates', [0, 0])
+            props = f.get('properties', {})
+            stratum = props.get('classification', 1)
+            points.append({
+                'id': idx + 1,
+                'lon': coords[0],
+                'lat': coords[1],
+                'stratum': stratum
+            })
+
+        return {
+            'success': True,
+            'count': len(points),
+            'points': points
+        }
+    except Exception as e:
         return {
             'success': False,
             'errMsg': str(e)
         }
+
 

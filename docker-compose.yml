@@ -39,6 +39,7 @@ services:
       - "8080:8080"
     volumes:
       - inab_app_logs:/app/logs
+      - inab_gee_credentials:/root/.config/earthengine
 
   proxy:
     image: caddy:2-alpine
@@ -61,3 +62,5 @@ volumes:
   inab_app_logs:
   inab_caddy_data:
   inab_caddy_config:
+  inab_gee_credentials:
+
