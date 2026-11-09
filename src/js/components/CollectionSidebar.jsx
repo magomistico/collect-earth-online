@@ -80,12 +80,14 @@ export const findMissingAnswers = (
 
 const OverviewCard = ({}) => {
   const state = useAtomValue(stateAtom);
-  const stats = [{title: 'Total Plots', key: 'totalPlots'},
-    {title: 'Total Contributors', key: 'totalUsers'},
-    {title: 'Analyzed', icon: 'square', color: '⁨⁨#3019FF', key: 'analyzed'},
-    {title: 'Flagged', icon: 'square', color: '#E32312', key: 'flagged'},
-    {title: 'Unanalyzed', icon: 'square', color: '#F3FC4F', key: 'unanalyzed'},
-    {title: 'Average Collection Time', key: 'averageTime'}];
+  const stats = [
+    { title: "Total de Parcelas", key: "totalPlots" },
+    { title: "Colaboradores", key: "totalUsers" },
+    { title: "Validadas (100%)", icon: "square", color: "#10b981", key: "analyzed" },
+    { title: "Marcadas con Alerta", icon: "square", color: "#ef4444", key: "flagged" },
+    { title: "Sin Validar", icon: "square", color: "#f59e0b", key: "unanalyzed" },
+    { title: "Tiempo Promedio", key: "averageTime" },
+  ];
   function percent (part, total) {
     return (part * 100) / total;
   }
@@ -99,7 +101,7 @@ const OverviewCard = ({}) => {
     case 'flagged' : return state.stats.flaggedPlots;
     case 'unanalyzed': return (state.stats.unanalyzedPlots +
       ' (' + percent(state.stats.unanalyzedPlots, state.stats.totalPlots).toFixed(2) + '%)');
-    case 'averageTime': return state.stats.collectionTime + " secs/ plot";    
+    case 'averageTime': return state.stats.collectionTime + " seg/ parcela";    
     }
   };
   
@@ -107,28 +109,27 @@ const OverviewCard = ({}) => {
     <>
       {Object.keys(state.currentPlot).length === 0 &&
         <>
-          <SidebarCard title="Plot Statistics">
+          <SidebarCard title="Estadísticas de Validación">
             <div id="stats-card">
               {state.stats &&
                 stats.map(({title, key, icon, color}) => {
-                  return (<div className="stat">
-                            {icon &&
-                              <span
-                                style={{color: color}}
-                              > ⯀ </span>}
-                            <span
-                              style={{color: 'gray'}}
-                            > {title}: </span>
-                            <span
-                              style={{fontWeight: 'bold'}}
-                            > {getStat(key)}</span>
+                  return (<div className="stat" key={key}>
+                            <span>
+                              {icon && <span style={{ color }}>⯀</span>}
+                              <span style={{ color: "#a1a1aa" }}>{title}:</span>
+                            </span>
+                            <span style={{ fontWeight: "700", color: "#ffffff" }}>
+                              {getStat(key)}
+                            </span>
                           </div>
                   );})}
             </div>         
           </SidebarCard>
-          <SidebarCard title="Project Description">
+          <SidebarCard title="Descripción del Proyecto">
             <div id="overview-card">
-              <span>{state.currentProject.description}</span>
+              <span style={{ color: "#d4d4d8", fontSize: "0.92rem", lineHeight: "1.6" }}>
+                {state.currentProject.description}
+              </span>
             </div>         
           </SidebarCard>
         </>

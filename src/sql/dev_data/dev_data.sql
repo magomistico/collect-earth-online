@@ -33,7 +33,9 @@ INSERT INTO imagery
     (imagery_uid, institution_rid, visibility, title, attribution, extent, source_config)
 VALUES
     (1, 1, 'public', 'OpenStreetMap', 'OpenStreetMap contributors', null, '{"type": "OSM"}'),
-    (2, 1, 'public', 'Esri World Imagery (Satélite)', 'Esri, Maxar, Earthstar Geographics', null, '{"type": "xyz", "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}');
+    (2, 1, 'public', 'Esri World Imagery (Satélite)', 'Esri, Maxar, Earthstar Geographics', null, '{"type": "xyz", "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}'),
+    (3, 1, 'public', 'Google Satélite (Alta Resolución)', 'Google Maps Satellite', null, '{"type": "xyz", "url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", "maxZoom": 22}'),
+    (4, 1, 'public', 'Google Satélite Híbrido (Rutas y Nombres)', 'Google Maps Hybrid', null, '{"type": "xyz", "url": "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", "maxZoom": 22}');
 
 SELECT setval(pg_get_serial_sequence('imagery', 'imagery_uid'), (SELECT MAX(imagery_uid) FROM imagery) + 1);
 
@@ -79,17 +81,19 @@ INSERT INTO projects (
     Now(),
     Now(),
     '{"showGEEScript": false, "autoLaunchGeoDash": false, "collectConfidence": true, "showPlotInformation": false}',
-    2,
+    3,
     FALSE,
     '[{"type": "Polygon", "coordinates": [[[-92.24, 13.73], [-92.24, 17.82], [-88.22, 17.82], [-88.22, 13.73], [-92.24, 13.73]]]}]'
 );
 
 SELECT setval(pg_get_serial_sequence('projects', 'project_uid'), (SELECT MAX(project_uid) FROM projects) + 1);
 
--- Adds imagery associated with project (Esri Satellite & OSM)
+-- Adds imagery associated with project (Google Satellite, Google Hybrid, OSM, Esri)
 INSERT INTO project_imagery
     (project_rid, imagery_rid)
 VALUES
+    (1, 3),
+    (1, 4),
     (1, 1),
     (1, 2);
 

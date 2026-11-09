@@ -842,42 +842,96 @@ function ImageAnalysisPane({}) {
                    bottom: '3.5em',
                    right: '2vw',
                    zIndex: 1}}>
-        <div className="ExternalTools__geo-buttons d-flex flex-column" id="plot-nav" style={{ gap: '0.8rem' }}>
+        <div className="ExternalTools__geo-buttons d-flex flex-column" id="plot-nav" style={{ gap: '0.6rem' }}>
           <input
-            className="btn btn-outline-lightgreen btn-sm"
+            className="btn btn-sm"
+            style={{
+              backgroundColor: "rgba(10, 15, 11, 0.85)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              color: "#ffffff",
+              borderRadius: "8px",
+              fontWeight: 600,
+              padding: "6px 14px",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+            }}
             onClick={zoomToPlot}
             type="button"
-            value="Re-Zoom"
+            value="Re-Enfocar"
           />
           <input
-            className={`btn btn-outline-${state.showSamples ? "red" : "lightgreen"} btn-sm`}
-
+            className="btn btn-sm"
+            style={{
+              backgroundColor: state.showSamples ? "rgba(10, 15, 11, 0.85)" : "rgba(16, 185, 129, 0.2)",
+              backdropFilter: "blur(8px)",
+              border: state.showSamples ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid rgba(16, 185, 129, 0.4)",
+              color: state.showSamples ? "#fca5a5" : "#6ee7b7",
+              borderRadius: "8px",
+              fontWeight: 600,
+              padding: "6px 14px",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+            }}
             onClick={toggleShowSamples}
             type="button"
-            value={`${state.showSamples ? "Hide" : "Show"} Samples`}
+            value={`${state.showSamples ? "Ocultar" : "Mostrar"} Muestras`}
           />
           <input
-            className={`btn btn-outline-${state.showBoundary ? "red" : "lightgreen"} btn-sm`} 
+            className="btn btn-sm"
+            style={{
+              backgroundColor: state.showBoundary ? "rgba(10, 15, 11, 0.85)" : "rgba(16, 185, 129, 0.2)",
+              backdropFilter: "blur(8px)",
+              border: state.showBoundary ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid rgba(16, 185, 129, 0.4)",
+              color: state.showBoundary ? "#fca5a5" : "#6ee7b7",
+              borderRadius: "8px",
+              fontWeight: 600,
+              padding: "6px 14px",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+            }}
             onClick={toggleShowBoundary}
             type="button"
-            value={`${state.showBoundary ? "Hide" : "Show"} Boundary`}
+            value={`${state.showBoundary ? "Ocultar" : "Mostrar"} Límite`}
           />
-          <div className="d-flex flex-column" style={{ gap: '2px' }}>
+          <div className="d-flex flex-column" style={{ gap: '4px', marginTop: '4px' }}>
             <button
               className="btn btn-sm"
-              style={{backgroundColor: 'white',
-                      borderRadius: '25%',
-                      margin: 'auto 0 auto auto'}}
-              onClick={() => zoom(1)}>
+              style={{
+                backgroundColor: "rgba(10, 15, 11, 0.9)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                color: "#ffffff",
+                borderRadius: "8px",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "auto 0 auto auto",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+              }}
+              onClick={() => zoom(1)}
+            >
               <SvgIcon icon="plus" size="0.9rem" />
             </button>
             <button
               className="btn btn-sm"
-              style={{backgroundColor: 'white',
-                      borderRadius: '25%',
-                      margin: 'auto 0 auto auto'}}
-              onClick={() => zoom(-1)}>
-              <SvgIcon icon="minus" size="0.9rem" /></button>
+              style={{
+                backgroundColor: "rgba(10, 15, 11, 0.9)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                color: "#ffffff",
+                borderRadius: "8px",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "auto 0 auto auto",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+              }}
+              onClick={() => zoom(-1)}
+            >
+              <SvgIcon icon="minus" size="0.9rem" />
+            </button>
           </div>
         </div>
       </div>

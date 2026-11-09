@@ -200,28 +200,42 @@ class Geodash extends React.Component {
           </Modal>)}
         <button
           style={{
-            margin: "auto 1rem"
+            margin: "0.8rem 1.5rem",
+            padding: "7px 16px",
+            fontSize: "0.84rem",
+            borderRadius: "8px",
           }}
-          className={toggleSamples ? "btn btn-outline-red btn-sm" : "btn btn-outline-lightgreen btn-sm"} 
+          className={toggleSamples ? "btn outline" : "btn filled"} 
           onClick={this.togglePlotSamples}
           type="button"
         >
-          {this.state.toggleSamples ? "Hide" : "Show"} Plot Samples
+          {this.state.toggleSamples ? "Ocultar Muestras de la Parcela" : "Mostrar Muestras de la Parcela"}
         </button>
         <div
           style={{
-            margin: ".75rem 1rem 3rem",
+            margin: ".75rem 1.5rem 3rem",
             textAlign: "center",
             display: "grid",
             gridTemplateColumns: "repeat(12, 1fr)",
             gridAutoRows: `${gridRowHeight}px`,
-            gap: ".5rem",
+            gap: ".75rem",
           }}
         >
 
           {widgets === null ? (
-            <div style={{ gridArea: "2 / 2 / span 2 / span 10" }}>
-              <h1>Retrieving Geo-Dash configuration for this project</h1>
+            <div
+              style={{
+                gridArea: "2 / 2 / span 2 / span 10",
+                background: "#0d140f",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "16px",
+                padding: "2.5rem 2rem",
+                color: "#e4e4e7",
+              }}
+            >
+              <h2 style={{ color: "#9ed999", fontSize: "1.2rem", fontWeight: 600 }}>
+                Cargando configuración de Geo-Dash para este proyecto...
+              </h2>
             </div>
           ) : widgets.length > 0 ? (
             widgets.map((widget, idx) => (
@@ -241,8 +255,42 @@ class Geodash extends React.Component {
               />
             ))
           ) : (
-            <div style={{ gridArea: "2 / 2 / span 2 / span 10" }}>
-              <h1>There are no Geo-Dash widgets for this project</h1>
+            <div
+              style={{
+                gridArea: "2 / 2 / span 2 / span 10",
+                background: "#0d140f",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "16px",
+                padding: "3rem 2rem",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+              }}
+            >
+              <div
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "50%",
+                  background: "rgba(16, 185, 129, 0.12)",
+                  border: "1px solid rgba(16, 185, 129, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.5rem",
+                }}
+              >
+                🛰️
+              </div>
+              <h2 style={{ color: "#ffffff", fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>
+                No hay widgets de Geo-Dash configurados para este proyecto
+              </h2>
+              <p style={{ color: "#a1a1aa", fontSize: "0.92rem", maxWidth: "560px", margin: 0, lineHeight: 1.5 }}>
+                Los widgets de Geo-Dash permiten consultar series de tiempo de índices espectrales (NDVI, EVI) y mosaicos satelitales multitemporales para cada parcela.
+              </p>
             </div>
           )}
         </div>

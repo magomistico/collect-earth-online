@@ -31,11 +31,12 @@
  * Widget Grid Container
  */
 .widget-container {
-  border: 1px solid transparent;
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 3px 3px 6px 0px rgba(0, 0, 0, 0.5);
-  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background-color: #0d140f;
+  color: #f4f4f5;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -47,14 +48,18 @@
   flex: 1;
   min-height: 0;
   min-width: 0;
+  background-color: #0b100c;
+  color: #f4f4f5;
 }
 .widget-container-heading {
-  color: var(--lightgreen);
-  background-color: #e7e7e7;
-  border-bottom: 1px solid transparent;
+  color: #9ed999;
+  background-color: #121c15;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   justify-content: space-between;
   display: flex;
-  padding: 0.5rem 1rem;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
   position: relative;
 }
 

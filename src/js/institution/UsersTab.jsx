@@ -31,18 +31,29 @@ export const UsersTab = ({
         sortable: true,
         grow: 2,
         cell: (row) => (
-          <span style={{ color: "#2f615e", fontWeight: 500 }}>{row.email}</span>
+          <span style={{ color: "#ffffff", fontWeight: 600 }}>{row.email}</span>
         ),
       },
       {
-        name: "Role",
+        name: "Rol",
         selector: (row) => row.institutionRole || "—",
         sortable: true,
-        width: "120px",
+        width: "140px",
         grow: 1,
         cell: (row) => (
-          <span style={{ textTransform: "capitalize" }}>
-            {row.institutionRole}
+          <span
+            style={{
+              padding: "3px 9px",
+              borderRadius: "6px",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              background: row.institutionRole === "admin" ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.06)",
+              color: row.institutionRole === "admin" ? "#6ee7b7" : "#d4d4d8",
+              border: `1px solid ${row.institutionRole === "admin" ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.12)"}`,
+              textTransform: "capitalize",
+            }}
+          >
+            {row.institutionRole || "—"}
           </span>
         ),
       },
@@ -69,17 +80,65 @@ export const UsersTab = ({
   );
 
   const customStyles = {
+    table: {
+      style: {
+        backgroundColor: "transparent",
+        color: "#f4f4f5",
+      },
+    },
+    tableWrapper: {
+      style: {
+        backgroundColor: "#0b100c",
+        borderRadius: "14px",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        overflow: "hidden",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)",
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: "#111813",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+        minHeight: "52px",
+      },
+    },
     headCells: {
       style: {
-        backgroundColor: "#f0f2f1",
-        fontWeight: 600,
-        fontSize: "0.9rem",
+        color: "#9ed999",
+        fontWeight: 700,
+        fontSize: "0.82rem",
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
       },
     },
     rows: {
       style: {
-        minHeight: "48px",
-        "&:hover": { backgroundColor: "#f7f9f8" },
+        minHeight: "56px",
+        backgroundColor: "#0b100c",
+        color: "#f4f4f5",
+        fontSize: "0.92rem",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+        "&:hover": {
+          backgroundColor: "#131d16 !important",
+          cursor: "pointer",
+        },
+      },
+    },
+    pagination: {
+      style: {
+        backgroundColor: "#111813",
+        color: "#e4e4e7",
+        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+        minHeight: "52px",
+      },
+      pageButtonsStyle: {
+        fill: "#9ed999",
+        "&:disabled": {
+          fill: "rgba(255, 255, 255, 0.2)",
+        },
+        "&:hover:not(:disabled)": {
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+        },
       },
     },
   };

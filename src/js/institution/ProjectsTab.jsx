@@ -40,8 +40,25 @@ export const ProjectsTab = ({
         name: "Visibilidad",
         selector: (row) => row.isDraft ? 'Borrador' : row.privacyLevel || "—",
         sortable: true,
-        width: "120px",
+        width: "130px",
         grow: 0.8,
+        cell: (row) => (
+          <span
+            style={{
+              padding: "3px 9px",
+              borderRadius: "6px",
+              fontSize: "0.78rem",
+              fontWeight: 600,
+              letterSpacing: "0.03em",
+              background: row.privacyLevel === "public" ? "rgba(16, 185, 129, 0.14)" : "rgba(255, 255, 255, 0.06)",
+              color: row.privacyLevel === "public" ? "#6ee7b7" : "#e4e4e7",
+              border: `1px solid ${row.privacyLevel === "public" ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.12)"}`,
+              textTransform: "uppercase",
+            }}
+          >
+            {row.isDraft ? "Borrador" : row.privacyLevel || "—"}
+          </span>
+        ),
       },
       {
         name: "Nombre del Proyecto / Formulario",
@@ -56,6 +73,7 @@ export const ProjectsTab = ({
         cell: (row) => (
 	  <a
 	    className="projects-table-name"
+	    style={{ color: "#ffffff", fontWeight: 600, textDecoration: "none", transition: "color 0.2s ease" }}
 	    href={row.isDraft ? `/project-wizard?draftId=${row.draftId}&institutionId=${institutionId}` :
 	      isAdmin ?
 		`/project-wizard?projectId=${row.id}&institutionId=${institutionId}`
@@ -75,10 +93,11 @@ export const ProjectsTab = ({
           const b = rowB.createdDate || "";
           return a < b ? -1 : a > b ? 1 : 0;
         },
-        cell: (row) =>
-          row.createdDate
-            ? row.createdDate
-            : "—",
+        cell: (row) => (
+          <span style={{ color: "#a1a1aa", fontSize: "0.88rem" }}>
+            {row.createdDate || "—"}
+          </span>
+        ),
       },
       {
         name: "Total Parcelas",
@@ -86,16 +105,27 @@ export const ProjectsTab = ({
         selector: (row) => row.numPlots ?? 0,
         sortable: true,
         right: true,
+        cell: (row) => (
+          <span style={{ color: "#ffffff", fontWeight: 700 }}>
+            {row.numPlots ?? 0}
+          </span>
+        ),
       },
       {
         name: "Avance %",
-        width: "160px",
+        width: "140px",
         selector: (row) => row.percentComplete ?? -1, 
         sortable: true,
         right: true,
-        cell: (row) => row.percentComplete != null
-          ? `${Number(row.percentComplete).toFixed(2)}%`
-          : "—",
+        cell: (row) => {
+          const pct = row.percentComplete != null ? Number(row.percentComplete) : null;
+          const color = pct === 100 ? "#84D0AC" : pct > 0 ? "#FEBD5B" : "#a1a1aa";
+          return (
+            <span style={{ color, fontWeight: 700, fontSize: "0.9rem" }}>
+              {pct != null ? `${pct.toFixed(2)}%` : "—"}
+            </span>
+          );
+        },
         sortFunction: (rowA, rowB) => {
           const a = rowA.percentComplete ?? -1;
           const b = rowB.percentComplete ?? -1;
@@ -104,9 +134,24 @@ export const ProjectsTab = ({
       },
       {
         name: "Estado",
-        width: "140px",
+        width: "130px",
         selector: (row) => row.isDraft ? 'Borrador' : row.availability ?? "No publicado",
         sortable: true,
+        cell: (row) => (
+          <span
+            style={{
+              padding: "3px 8px",
+              borderRadius: "6px",
+              fontSize: "0.78rem",
+              background: "rgba(255, 255, 255, 0.05)",
+              color: "#d4d4d8",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              textTransform: "capitalize",
+            }}
+          >
+            {row.isDraft ? "Borrador" : row.availability ?? "No publicado"}
+          </span>
+        ),
       },
       
       {
@@ -116,6 +161,7 @@ export const ProjectsTab = ({
         grow: .2,
         cell: (row)=> <div
                         className="edit-button"
+                        style={{ cursor: "pointer", color: "#9ed999" }}
                         onClick={()=> {
                           if(row.isDraft){
                             window.location.assign(`/project-wizard?draftId=${row.draftId}&institutionId=${institutionId}`);
@@ -127,31 +173,89 @@ export const ProjectsTab = ({
                         <SvgIcon icon="edit" size="1.2rem"/>
                       </div>
       },
-      {width: "130px",
-        cell: (row)=> !row.isDraft &&
-          <input
-            className="btn btn-outline-darkgreen btn-sm w-100"
-            onClick={() => window.open(`/collection?projectId=${row.id}&institutionId=${institutionId}`)
-            }
+      {
+        width: "130px",
+        cell: (row) => !row.isDraft && (
+          <button
+            className="filled-button"
+            style={{
+              padding: "7px 16px",
+              fontSize: "0.84rem",
+              width: "100%",
+              justifyContent: "center",
+              borderRadius: "8px",
+            }}
+            onClick={() => window.open(`/collection?projectId=${row.id}&institutionId=${institutionId}`)}
             type="button"
-            value="Validar"
-          />}
+          >
+            Validar
+          </button>
+        )
+      }
     ],
     [isAdmin]
   );
   
   const customStyles = {
+    table: {
+      style: {
+        backgroundColor: "transparent",
+        color: "#f4f4f5",
+      },
+    },
+    tableWrapper: {
+      style: {
+        backgroundColor: "#0b100c",
+        borderRadius: "14px",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        overflow: "hidden",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)",
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: "#111813",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+        minHeight: "52px",
+      },
+    },
     headCells: {
       style: {
-        backgroundColor: "#f0f2f1",
-        fontWeight: 600,
-        fontSize: "0.9rem",
+        color: "#9ed999",
+        fontWeight: 700,
+        fontSize: "0.82rem",
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
       },
     },
     rows: {
       style: {
-        minHeight: "48px",
-        "&:hover": { backgroundColor: "#f7f9f8" },
+        minHeight: "56px",
+        backgroundColor: "#0b100c",
+        color: "#f4f4f5",
+        fontSize: "0.92rem",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+        "&:hover": {
+          backgroundColor: "#131d16 !important",
+          cursor: "pointer",
+        },
+      },
+    },
+    pagination: {
+      style: {
+        backgroundColor: "#111813",
+        color: "#e4e4e7",
+        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+        minHeight: "52px",
+      },
+      pageButtonsStyle: {
+        fill: "#9ed999",
+        "&:disabled": {
+          fill: "rgba(255, 255, 255, 0.2)",
+        },
+        "&:hover:not(:disabled)": {
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+        },
       },
     },
   };

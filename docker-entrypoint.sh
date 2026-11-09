@@ -210,12 +210,33 @@ ON CONFLICT (institution_rid, user_rid) DO NOTHING;
 INSERT INTO imagery (imagery_uid, institution_rid, visibility, title, attribution, extent, source_config, archived)
 VALUES
     (1, 1, 'platform'::visibility_type, 'OpenStreetMap', 'OpenStreetMap contributors', NULL, '{"type": "OSM"}'::jsonb, FALSE),
-    (2, 1, 'platform'::visibility_type, 'Esri World Imagery (Satélite)', 'Esri, Maxar, Earthstar Geographics', NULL, '{"type": "xyz", "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}'::jsonb, FALSE)
+    (2, 1, 'platform'::visibility_type, 'Esri World Imagery (Satélite)', 'Esri, Maxar, Earthstar Geographics', NULL, '{"type": "xyz", "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}'::jsonb, FALSE),
+    (3, 1, 'platform'::visibility_type, 'Google Satélite (Alta Resolución)', 'Google Maps Satellite', NULL, '{"type": "xyz", "url": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", "maxZoom": 22}'::jsonb, FALSE),
+    (4, 1, 'platform'::visibility_type, 'Google Satélite Híbrido (Rutas y Nombres)', 'Google Maps Hybrid', NULL, '{"type": "xyz", "url": "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", "maxZoom": 22}'::jsonb, FALSE)
 ON CONFLICT (imagery_uid) DO UPDATE
-SET visibility = 'platform'::visibility_type,
+SET title = EXCLUDED.title,
+    attribution = EXCLUDED.attribution,
+    source_config = EXCLUDED.source_config,
+    visibility = 'platform'::visibility_type,
     archived = FALSE;
 
-SELECT setval(pg_get_serial_sequence('imagery', 'imagery_uid'), GREATEST(COALESCE((SELECT MAX(imagery_uid) FROM imagery), 2), 2));
+SELECT setval(pg_get_serial_sequence('imagery', 'imagery_uid'), GREATEST(COALESCE((SELECT MAX(imagery_uid) FROM imagery), 4), 4));
+
+-- Asignar Google Satélite como capa principal por defecto a los proyectos
+UPDATE projects SET imagery_rid = 3 WHERE project_uid = 1 OR imagery_rid = 2;
+
+-- Asegurar que las capas de Google Satélite estén vinculadas a project_imagery
+INSERT INTO project_imagery (project_rid, imagery_rid)
+SELECT 1, 3 WHERE EXISTS (SELECT 1 FROM projects WHERE project_uid = 1)
+ON CONFLICT (project_rid, imagery_rid) DO NOTHING;
+
+INSERT INTO project_imagery (project_rid, imagery_rid)
+SELECT 1, 4 WHERE EXISTS (SELECT 1 FROM projects WHERE project_uid = 1)
+ON CONFLICT (project_rid, imagery_rid) DO NOTHING;
+
+INSERT INTO project_imagery (project_rid, imagery_rid)
+SELECT 1, 1 WHERE EXISTS (SELECT 1 FROM projects WHERE project_uid = 1)
+ON CONFLICT (project_rid, imagery_rid) DO NOTHING;
 EOSQL
 
 LOGIN_OK=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM check_login('admin@inab.gob.gt', 'admin123');" 2>/dev/null || echo "0")

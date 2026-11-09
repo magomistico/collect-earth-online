@@ -210,19 +210,16 @@ export function NavSideBar ({tab, setTab, userId}) {
   };
   
   const navTabs = {
-    highlights:
-    {title: "INICIO",
-     icon: "compass",
-     clickHandler: highlightsHandler},
-    institutions:
-    {title: "INAB",
-     icon: "group",
-     clickHandler: institutionsHandler},
-    ... (userId &&
-         {collect: 
-          {title: "VALIDAR",
-           icon: "collect",
-           clickHandler: collectHandler}}),
+    highlights: {
+      title: "INICIO",
+      icon: "compass",
+      clickHandler: highlightsHandler,
+    },
+    institutions: {
+      title: "INAB",
+      icon: "collect",
+      clickHandler: institutionsHandler,
+    },
   };
 
   function NavTab ({icon, clickHandler, title, tabkey}) {
