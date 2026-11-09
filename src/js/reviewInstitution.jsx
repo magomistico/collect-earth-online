@@ -11,6 +11,7 @@ import { KBtoBase64Length } from "./utils/generalUtils";
 import { ProjectsTab } from "./institution/ProjectsTab";
 import { ImageryTab } from "./institution/ImageryTab";
 import { UsersTab } from "./institution/UsersTab";
+import { Area2Tab } from "./institution/Area2Tab";
 import { safeLength } from "./utils/sequence";
 
 import '../css/institution.css';
@@ -420,6 +421,7 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
         tabs={[
           { id: "projects", label: "Proyectos y Formularios", icon: "projects", badge: safeLength(state.projectList) },
           { id: "users", label: "Usuarios", icon: "users", badge: safeLength(state.usersList) },
+          ...(state.isAdmin ? [{ id: "area2", label: "AREA2 · Muestreo GEE", icon: "compass", badge: "GEE" }] : []),
         ]}
         onUpdateInstitution={updateInstitution}
         institutionName={state.institutionDetails.name || "INAB · SIG"}
@@ -457,6 +459,12 @@ export const ReviewInstitution = ({ institutionId, userId }) => {
           usersList={state.usersList}
           requestMembership={requestMembership}
           showRequestMembership={showRequestMembership}
+        />
+      )}
+      {state.selectedTab === "area2" && state.isAdmin && (
+        <Area2Tab
+          institutionId={institutionId}
+          isAdmin={state.isAdmin}
         />
       )}
     </div>
@@ -644,7 +652,7 @@ export const SidebarTabs = ({
               </span>
             </div>
 
-            {tab.badge > 0 && (
+            {(typeof tab.badge === "number" ? tab.badge > 0 : Boolean(tab.badge)) && (
               <span className="sidebar-badge">{tab.badge}</span>
             )}
           </button>
