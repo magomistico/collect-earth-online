@@ -270,10 +270,20 @@ def area2Stratification(requestDict):
             if len(parts) >= 2:
                 project = parts[1]
 
-        try:
-            ee.data.getAlgorithms()
-        except Exception:
-            initialize(project=project)
+        if project:
+            try:
+                initialize(project=project)
+            except Exception:
+                try:
+                    ee.data.getAlgorithms()
+                except Exception:
+                    initialize()
+        else:
+            try:
+                ee.data.getAlgorithms()
+            except Exception:
+                initialize()
+
 
         img = ee.Image(asset_id)
         try:
@@ -365,10 +375,20 @@ def area2StratifiedSample(requestDict):
             if len(parts) >= 2:
                 project = parts[1]
 
-        try:
-            ee.data.getAlgorithms()
-        except Exception:
-            initialize(project=project)
+        if project:
+            try:
+                initialize(project=project)
+            except Exception:
+                try:
+                    ee.data.getAlgorithms()
+                except Exception:
+                    initialize()
+        else:
+            try:
+                ee.data.getAlgorithms()
+            except Exception:
+                initialize()
+
 
         img = ee.Image(asset_id)
         try:
